@@ -19,7 +19,11 @@ class CommunityStore extends ChangeNotifier {
       avatarColor: communityAvatarColors[0],
       petTag: 'Pamuk',
       likeCount: 12,
-      commentCount: 3,
+      comments: [
+        Comment(author: 'Mert', text: 'Hangi fırçayı kullandın?', timeAgo: '1 saat önce'),
+        Comment(author: 'Zeynep', text: 'Çok tatlı 🐱', timeAgo: '1 saat önce'),
+        Comment(author: 'Ayşe', text: 'Yumuşak kıllı olanı, blogda link var!', timeAgo: '40 dakika önce'),
+      ],
     ),
     CommunityPost(
       author: 'Mert',
@@ -30,7 +34,10 @@ class CommunityStore extends ChangeNotifier {
       avatarColor: communityAvatarColors[1],
       petTag: 'Karamel',
       likeCount: 28,
-      commentCount: 7,
+      comments: [
+        Comment(author: 'Ayşe', text: 'Biz de katılmak isteriz!', timeAgo: '4 saat önce'),
+        Comment(author: 'Can', text: 'Hangi parkta buluşuyorsunuz?', timeAgo: '3 saat önce'),
+      ],
     ),
     CommunityPost(
       author: 'Zeynep',
@@ -40,7 +47,10 @@ class CommunityStore extends ChangeNotifier {
           'ilanlarına göz atmanızı tavsiye ederim ❤️',
       avatarColor: communityAvatarColors[2],
       likeCount: 45,
-      commentCount: 11,
+      comments: [
+        Comment(author: 'Mert', text: 'Boncuk\'a hoş geldin dileklerimi ilet ❤️', timeAgo: 'Dün'),
+        Comment(author: 'Ayşe', text: 'Sahiplenmek en güzeli, helal olsun!', timeAgo: 'Dün'),
+      ],
     ),
   ];
 
@@ -57,6 +67,12 @@ class CommunityStore extends ChangeNotifier {
   /// Akışın en üstüne yeni bir gönderi ekler.
   void add(CommunityPost post) {
     _posts.insert(0, post);
+    notifyListeners();
+  }
+
+  /// Bir gönderiye yeni yorum ekler ve sayacı günceller.
+  void addComment(CommunityPost post, String text) {
+    post.comments.add(Comment(author: 'Sen', text: text));
     notifyListeners();
   }
 }

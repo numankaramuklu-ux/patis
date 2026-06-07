@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../state/community_store.dart';
 import '../theme/app_colors.dart';
+import '../widgets/comments_sheet.dart';
 import '../widgets/community_post_card.dart';
 import '../widgets/new_post_sheet.dart';
 
@@ -38,6 +39,8 @@ class CommunityScreen extends StatelessWidget {
                 post: post,
                 // Beğeni mantığını depo yürütür; kart sadece haber verir.
                 onLike: () => store.toggleLike(post),
+                // Yorum butonu yorum panelini açar.
+                onComment: () => CommentsSheet.show(context, post),
               ),
               const SizedBox(height: 12),
             ],

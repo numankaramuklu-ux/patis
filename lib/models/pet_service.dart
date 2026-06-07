@@ -10,6 +10,7 @@ class PetService {
     required this.label,
     required this.color,
     this.onTap,
+    this.badgeCount = 0,
   });
 
   /// Kutucukta gösterilecek ikon.
@@ -28,4 +29,8 @@ class PetService {
   /// İsteğe bağlı: ekranı henüz hazır olmayan hizmetlerde boş bırakılır,
   /// o kutu da basıldığında bir şey yapmaz.
   final VoidCallback? onTap;
+
+  /// Kutucuğun ikonu üzerinde gösterilecek sayı rozeti (örn. okunmamış
+  /// bildirim sayısı). 0 ise rozet gösterilmez.
+  final int badgeCount;
 }

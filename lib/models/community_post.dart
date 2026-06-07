@@ -16,9 +16,9 @@ class CommunityPost {
     required this.avatarColor,
     this.petTag,
     this.likeCount = 0,
-    this.commentCount = 0,
+    List<Comment>? comments,
     this.liked = false,
-  });
+  }) : comments = comments ?? [];
 
   /// Gönderiyi paylaşan kişinin adı.
   final String author;
@@ -40,11 +40,36 @@ class CommunityPost {
   /// Beğeni sayısı (değişebilir).
   int likeCount;
 
-  /// Yorum sayısı.
-  final int commentCount;
+  /// Bu gönderiye yapılan yorumlar (değişebilir liste). Yeni yorumlar
+  /// `CommunityStore.addComment` ile eklenir ki ekran otomatik güncellensin.
+  final List<Comment> comments;
 
   /// Bu gönderiyi kullanıcı beğendi mi? (değişebilir)
   bool liked;
+
+  /// Yorum sayısı — her zaman yorum listesinin uzunluğu.
+  int get commentCount => comments.length;
+
+  /// Avatarda gösterilecek baş harf.
+  String get initial => author.characters.first;
+}
+
+/// Bir gönderiye yapılan tek bir yorum.
+class Comment {
+  Comment({
+    required this.author,
+    required this.text,
+    this.timeAgo = 'Az önce',
+  });
+
+  /// Yorumu yazan kişinin adı.
+  final String author;
+
+  /// Yorum metni.
+  final String text;
+
+  /// Ne kadar önce yazıldığı (örn. "1 saat önce").
+  final String timeAgo;
 
   /// Avatarda gösterilecek baş harf.
   String get initial => author.characters.first;

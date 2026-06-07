@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../models/appointment.dart';
 import '../models/pet.dart';
 import '../models/pet_service.dart';
+import '../state/notification_store.dart';
 import '../theme/app_colors.dart';
 import '../widgets/appointment_card.dart';
 import '../widgets/pet_card.dart';
@@ -10,6 +12,7 @@ import '../widgets/section_title.dart';
 import '../widgets/service_grid.dart';
 import 'adoption_screen.dart';
 import 'blog_screen.dart';
+import 'notifications_screen.dart';
 import 'pet_sitter_screen.dart';
 
 /// Uygulamanın açılış (Ana Sayfa) ekranı.
@@ -100,10 +103,20 @@ class HomeScreen extends StatelessWidget {
         // Topluluk sekmesi (index 4).
         onTap: () => onSelectTab(4),
       ),
-      const PetService(
+      PetService(
         icon: Icons.notifications_outlined,
         label: 'Bildirim',
         color: AppColors.gold,
+        // Okunmamış bildirim sayısını rozet olarak göster (depoyu DİNLE ki
+        // okundu işaretlenince rozet anında güncellensin).
+        badgeCount: context.watch<NotificationStore>().unreadCount,
+        // Dokununca Bildirimler ekranını üstüne aç. Bildirime dokununca ilgili
+        // sekmeye geçebilmesi için sekme değiştirme geri-çağırımını da veririz.
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => NotificationsScreen(onSelectTab: onSelectTab),
+          ),
+        ),
       ),
     ];
   }

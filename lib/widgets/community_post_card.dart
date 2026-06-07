@@ -6,16 +6,19 @@ import '../theme/app_colors.dart';
 /// Topluluk akışındaki tek bir gönderiyi gösteren kart.
 ///
 /// Veriyi dışarıdan [CommunityPost] olarak alır. Beğen butonuna basılınca
-/// [onLike] çağrılır (beğeni mantığını store yürütür).
+/// [onLike], yorum butonuna basılınca [onComment] çağrılır (mantığı store
+/// yürütür).
 class CommunityPostCard extends StatelessWidget {
   const CommunityPostCard({
     super.key,
     required this.post,
     required this.onLike,
+    required this.onComment,
   });
 
   final CommunityPost post;
   final VoidCallback onLike;
+  final VoidCallback onComment;
 
   @override
   Widget build(BuildContext context) {
@@ -84,8 +87,8 @@ class CommunityPostCard extends StatelessWidget {
                 icon: Icons.mode_comment_outlined,
                 label: '${post.commentCount}',
                 color: AppColors.text.withValues(alpha: 0.6),
-                // Yorum ekranı ileride; şimdilik dokunulduğunda bir şey yapmıyor.
-                onTap: null,
+                // Dokununca yorum panelini açar.
+                onTap: onComment,
               ),
             ],
           ),

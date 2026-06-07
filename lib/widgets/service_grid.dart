@@ -68,15 +68,27 @@ class _ServiceTile extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               // İkonu hizmetin kendi renginin soluk tonuyla bir kutuya alıyoruz;
-              // ikon ise tam renkte → yumuşak ama belirgin bir vurgu.
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: service.color.withValues(alpha: 0.14),
-                  borderRadius: BorderRadius.circular(18),
-                ),
-                child: Icon(service.icon, color: service.color, size: 26),
+              // ikon ise tam renkte → yumuşak ama belirgin bir vurgu. Rozet
+              // varsa kutunun sağ üst köşesine taşacak şekilde üstüne bindiririz.
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: service.color.withValues(alpha: 0.14),
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    child: Icon(service.icon, color: service.color, size: 26),
+                  ),
+                  if (service.badgeCount > 0)
+                    Positioned(
+                      top: -4,
+                      right: -4,
+                      child: _Badge(count: service.badgeCount),
+                    ),
+                ],
               ),
               const SizedBox(height: 10),
               // Etiket için sabit yükseklik: 1 ve 2 satırlık etiketlerde tüm
@@ -98,6 +110,39 @@ class _ServiceTile extends StatelessWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// İkon üzerindeki küçük sayı rozeti (örn. okunmamış bildirim adedi).
+/// 9'dan büyük sayıları "9+" gösterir ki rozet küçük ve yuvarlak kalsın.
+class _Badge extends StatelessWidget {
+  const _Badge({required this.count});
+
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    final label = count > 9 ? '9+' : '$count';
+    return Container(
+      constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 5),
+      decoration: BoxDecoration(
+        color: AppColors.terracotta,
+        borderRadius: BorderRadius.circular(10),
+        // Krem zeminden ayrılsın diye ince bir çerçeve.
+        border: Border.all(color: AppColors.cream, width: 2),
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        label,
+        style: const TextStyle(
+          color: AppColors.cream,
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          height: 1.1,
         ),
       ),
     );
