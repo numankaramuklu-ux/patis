@@ -8,6 +8,7 @@ import 'state/community_store.dart';
 import 'state/lost_pet_store.dart';
 import 'state/notification_store.dart';
 import 'state/passport_store.dart';
+import 'state/salon_store.dart';
 import 'theme/app_theme.dart';
 
 /// Uygulamanın başlangıç noktası. Flutter buradan çalışmaya başlar.
@@ -35,6 +36,7 @@ class PatisApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => CommunityStore()),
         ChangeNotifierProvider(create: (_) => PassportStore()),
         ChangeNotifierProvider(create: (_) => NotificationStore()),
+        ChangeNotifierProvider(create: (_) => SalonStore()),
       ],
       child: MaterialApp(
         title: 'Patiş',

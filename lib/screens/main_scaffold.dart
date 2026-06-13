@@ -9,6 +9,8 @@ import 'community_screen.dart';
 import 'home_screen.dart';
 import 'lost_pet_screen.dart';
 import 'passport_screen.dart';
+import 'salon_appointments_screen.dart';
+import 'salon_clients_screen.dart';
 
 /// Uygulamanın ana kabuğu: alttaki 5 sekmeli navigasyon çubuğu.
 ///
@@ -48,7 +50,11 @@ class _MainScaffoldState extends State<MainScaffold> {
     final screens = <Widget>[
       HomeScreen(onSelectTab: _selectTab),
       _firstTabScreen(role),
-      const AppointmentScreen(),
+      // Randevu sekmesi: kuaför için detaylı salon randevuları, diğerleri için
+      // standart randevu ekranı.
+      role == UserRole.kuafor
+          ? const SalonAppointmentsScreen()
+          : const AppointmentScreen(),
       const LostPetScreen(),
       const CommunityScreen(),
     ];
@@ -89,11 +95,12 @@ class _MainScaffoldState extends State<MainScaffold> {
     );
   }
 
-  /// 1. sekmenin ekranı: sahip → Pasaport, kuaför/veteriner → müşteri/hasta
-  /// listesi (mock verili [ClientsScreen]).
+  /// 1. sekmenin ekranı: sahip → Pasaport, kuaför → detaylı Müşteriler ekranı,
+  /// veteriner → hasta listesi (mock verili [ClientsScreen]).
   Widget _firstTabScreen(UserRole role) {
     switch (role) {
       case UserRole.kuafor:
+        return const SalonClientsScreen();
       case UserRole.veteriner:
         return ClientsScreen(role: role);
       case UserRole.kullanici:

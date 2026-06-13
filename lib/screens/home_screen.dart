@@ -7,9 +7,11 @@ import '../models/pet_service.dart';
 import '../models/user_role.dart';
 import '../state/auth_store.dart';
 import '../state/notification_store.dart';
+import '../state/salon_store.dart';
 import '../theme/app_colors.dart';
 import '../widgets/appointment_card.dart';
 import '../widgets/pet_card.dart';
+import '../widgets/salon_appointment_card.dart';
 import '../widgets/section_title.dart';
 import '../widgets/service_grid.dart';
 import 'adoption_screen.dart';
@@ -158,6 +160,9 @@ class HomeScreen extends StatelessWidget {
   ) {
     final isVet = role == UserRole.veteriner;
     final businessName = auth.businessName ?? auth.name ?? role.label;
+    // Kuaförün özet sayıları ve randevuları canlı olarak SalonStore'dan gelir;
+    // veteriner için şimdilik sabit mock değerler kullanılır.
+    final salon = isVet ? null : context.watch<SalonStore>();
     return [
       _GreetingHeader(
         title: 'Merhaba, $businessName ${isVet ? '🩺' : '✂️'}',
@@ -166,18 +171,43 @@ class HomeScreen extends StatelessWidget {
             : 'Bugünkü randevuların hazır',
       ),
       const SizedBox(height: 20),
-      _BusinessSummaryCard(role: role),
+      _BusinessSummaryCard(
+        role: role,
+        todayValue: salon != null ? '${salon.todayCount}' : '8',
+        pendingValue: salon != null ? '${salon.pendingCount}' : '3',
+      ),
       const SizedBox(height: 28),
       SectionTitle(isVet ? 'Klinik araçları' : 'Salon araçları'),
       const SizedBox(height: 12),
       ServiceGrid(services: _businessServices(context, role)),
       const SizedBox(height: 28),
-      const SectionTitle('Bugünkü randevular'),
-      const SizedBox(height: 12),
-      for (final appt in _todaysAppointments(role)) ...[
-        AppointmentCard(appointment: appt),
-        const SizedBox(height: 12),
-      ],
+      // Başlık + "Tümü" kısayolu (Randevu sekmesine geçer).
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const SectionTitle('Bugünkü randevular'),
+          TextButton(
+            onPressed: () => onSelectTab(2),
+            child: const Text('Tümü'),
+          ),
+        ],
+      ),
+      const SizedBox(height: 4),
+      // Kuaför: detaylı salon randevu kartları (dokununca Randevular sekmesi).
+      // Veteriner: standart mock randevu kartları.
+      if (salon != null)
+        for (final appt in salon.todays) ...[
+          SalonAppointmentCard(
+            appointment: appt,
+            onTap: () => onSelectTab(2),
+          ),
+          const SizedBox(height: 12),
+        ]
+      else
+        for (final appt in _todaysAppointments(role)) ...[
+          AppointmentCard(appointment: appt),
+          const SizedBox(height: 12),
+        ],
     ];
   }
 
@@ -312,9 +342,19 @@ class _GreetingHeader extends StatelessWidget {
 /// Rol etiketi + günün özet sayıları (bugünkü randevu, bekleyen talep). Sayılar
 /// şimdilik mock; ileride [AppointmentStore]'dan türetilecek.
 class _BusinessSummaryCard extends StatelessWidget {
-  const _BusinessSummaryCard({required this.role});
+  const _BusinessSummaryCard({
+    required this.role,
+    required this.todayValue,
+    required this.pendingValue,
+  });
 
   final UserRole role;
+
+  /// Bugünkü randevu/hasta sayısı (özet için, dışarıdan verilir).
+  final String todayValue;
+
+  /// Onay bekleyen talep sayısı.
+  final String pendingValue;
 
   @override
   Widget build(BuildContext context) {
@@ -353,7 +393,7 @@ class _BusinessSummaryCard extends StatelessWidget {
           Row(
             children: [
               _Stat(
-                value: isVet ? '8' : '5',
+                value: todayValue,
                 label: isVet ? 'bugünkü hasta' : 'bugünkü randevu',
               ),
               Container(
@@ -362,7 +402,7 @@ class _BusinessSummaryCard extends StatelessWidget {
                 color: AppColors.cream.withValues(alpha: 0.2),
               ),
               _Stat(
-                value: isVet ? '3' : '2',
+                value: pendingValue,
                 label: 'bekleyen talep',
               ),
             ],
