@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../models/pet.dart';
@@ -28,6 +31,24 @@ class PassportScreen extends StatelessWidget {
     ageLabel: '2 yaşında',
   );
 
+  /// Galeriden bir fotoğraf seçtirir ve depoya kaydeder.
+  ///
+  /// Kullanıcı seçim yapmadan kapatırsa hiçbir şey değişmez. Seçilen dosyanın
+  /// yolu [PassportStore]'a yazılır; ekran depoyu dinlediği için avatar
+  /// otomatik güncellenir.
+  Future<void> _pickPhoto(BuildContext context) async {
+    final store = context.read<PassportStore>();
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 800,
+      imageQuality: 85,
+    );
+    if (picked != null) {
+      store.setPhoto(picked.path);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // Depoyu DİNLE: yeni kayıt eklenince ekran kendini yeniden çizer.
@@ -39,6 +60,8 @@ class PassportScreen extends StatelessWidget {
           children: [
             _PassportHeader(
               pet: _pet,
+              photoPath: store.photoPath,
+              onPickPhoto: () => _pickPhoto(context),
               onShare: () => PassportShareSheet.show(
                 context,
                 pet: _pet,
@@ -159,9 +182,20 @@ class _SectionHeader extends StatelessWidget {
 
 /// Pasaport ekranının üstündeki büyük profil başlığı.
 class _PassportHeader extends StatelessWidget {
-  const _PassportHeader({required this.pet, required this.onShare});
+  const _PassportHeader({
+    required this.pet,
+    required this.photoPath,
+    required this.onPickPhoto,
+    required this.onShare,
+  });
 
   final Pet pet;
+
+  /// Seçili profil fotoğrafının dosya yolu (yoksa null → varsayılan ikon).
+  final String? photoPath;
+
+  /// Avatara dokununca fotoğraf seçtirir.
+  final VoidCallback onPickPhoto;
 
   /// Sağ üstteki paylaş ikonuna basılınca çağrılır.
   final VoidCallback onShare;
@@ -185,14 +219,53 @@ class _PassportHeader extends StatelessWidget {
               tooltip: 'QR ile paylaş',
             ),
           ),
-          Container(
-            width: 88,
-            height: 88,
-            decoration: BoxDecoration(
-              color: AppColors.cream.withValues(alpha: 0.15),
-              shape: BoxShape.circle,
+          // Dokununca galeriden fotoğraf seçtiren avatar. Fotoğraf seçilmişse
+          // dairesel olarak gösterilir, yoksa varsayılan pati ikonu kalır.
+          // Sağ altta küçük kamera rozeti "değiştirilebilir" olduğunu belli eder.
+          GestureDetector(
+            onTap: onPickPhoto,
+            child: Stack(
+              children: [
+                Container(
+                  width: 88,
+                  height: 88,
+                  decoration: BoxDecoration(
+                    color: AppColors.cream.withValues(alpha: 0.15),
+                    shape: BoxShape.circle,
+                    image: photoPath != null
+                        ? DecorationImage(
+                            image: FileImage(File(photoPath!)),
+                            fit: BoxFit.cover,
+                          )
+                        : null,
+                  ),
+                  child: photoPath == null
+                      ? const Icon(
+                          Icons.pets,
+                          color: AppColors.cream,
+                          size: 44,
+                        )
+                      : null,
+                ),
+                Positioned(
+                  right: 0,
+                  bottom: 0,
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: AppColors.cream,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: AppColors.forest, width: 2),
+                    ),
+                    child: const Icon(
+                      Icons.camera_alt_rounded,
+                      color: AppColors.forest,
+                      size: 16,
+                    ),
+                  ),
+                ),
+              ],
             ),
-            child: const Icon(Icons.pets, color: AppColors.cream, size: 44),
           ),
           const SizedBox(height: 16),
           Text(

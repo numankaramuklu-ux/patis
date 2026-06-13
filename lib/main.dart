@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'screens/main_scaffold.dart';
+import 'screens/register_screen.dart';
 import 'state/appointment_store.dart';
+import 'state/auth_store.dart';
 import 'state/community_store.dart';
 import 'state/lost_pet_store.dart';
 import 'state/notification_store.dart';
@@ -28,6 +29,7 @@ class PatisApp extends StatelessWidget {
     // erişebilir. Yeni bir özellik state'i gerekince buraya bir satır ekleriz.
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => AuthStore()),
         ChangeNotifierProvider(create: (_) => AppointmentStore()),
         ChangeNotifierProvider(create: (_) => LostPetStore()),
         ChangeNotifierProvider(create: (_) => CommunityStore()),
@@ -38,7 +40,8 @@ class PatisApp extends StatelessWidget {
         title: 'Patiş',
         debugShowCheckedModeBanner: false, // sağ üstteki "DEBUG" şeridini gizler
         theme: AppTheme.light(),
-        home: const MainScaffold(),
+        // Açılışta kayıt ekranı; kayıt/giriş sonrası MainScaffold'a geçilir.
+        home: const RegisterScreen(),
       ),
     );
   }

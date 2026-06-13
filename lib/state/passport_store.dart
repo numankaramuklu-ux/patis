@@ -44,6 +44,10 @@ class PassportStore extends ChangeNotifier {
     ),
   ];
 
+  // Hayvanın profil fotoğrafının cihazdaki dosya yolu. null ise varsayılan
+  // ikon gösterilir. Şimdilik bellekte; ileride Firebase Storage'a yüklenecek.
+  String? _photoPath;
+
   // En eskiden en yeniye sıralı tartımlar (grafik soldan sağa zaman akışı).
   final List<WeightEntry> _weights = [
     const WeightEntry(kg: 3.8, dateLabel: 'Oca'),
@@ -59,6 +63,9 @@ class PassportStore extends ChangeNotifier {
   List<HealthRecord> get allergies => List.unmodifiable(_allergies);
   List<HealthRecord> get medications => List.unmodifiable(_medications);
   List<WeightEntry> get weights => List.unmodifiable(_weights);
+
+  /// Hayvanın seçili profil fotoğrafının yolu (yoksa null).
+  String? get photoPath => _photoPath;
 
   /// Yeni aşıyı listenin başına ekler (en güncel en üstte).
   void addVaccination(Vaccination vaccination) {
@@ -81,6 +88,12 @@ class PassportStore extends ChangeNotifier {
   /// Yeni tartımı sonuna ekler (grafikte en sağda, en güncel nokta olarak).
   void addWeight(WeightEntry entry) {
     _weights.add(entry);
+    notifyListeners();
+  }
+
+  /// Hayvanın profil fotoğrafını günceller (seçilen dosyanın yolu).
+  void setPhoto(String path) {
+    _photoPath = path;
     notifyListeners();
   }
 }
