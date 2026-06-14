@@ -335,10 +335,6 @@ class _AppointmentDetailSheet extends StatelessWidget {
           _DetailRow(
               icon: Icons.content_cut, label: 'Hizmet', value: a.service),
           _DetailRow(
-              icon: Icons.timelapse_outlined,
-              label: 'Süre',
-              value: '${a.durationMin} dakika'),
-          _DetailRow(
               icon: Icons.payments_outlined,
               label: 'Ücret',
               value: '${a.price} ₺'),
@@ -425,20 +421,25 @@ class _DetailRow extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 7),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(icon, size: 20, color: AppColors.forest),
           const SizedBox(width: 12),
-          Text(
-            label,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: AppColors.text.withValues(alpha: 0.6),
+          // Sabit genişlikli etiket sütunu; karşılarındaki değerler aynı
+          // hizadan başlasın diye (yoksa etiket uzunluğuna göre kayıyordu).
+          SizedBox(
+            width: 80,
+            child: Text(
+              label,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: AppColors.text.withValues(alpha: 0.6),
+              ),
             ),
           ),
-          const Spacer(),
-          Flexible(
+          const SizedBox(width: 12),
+          Expanded(
             child: Text(
               value,
-              textAlign: TextAlign.right,
               style: theme.textTheme.bodyLarge?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
