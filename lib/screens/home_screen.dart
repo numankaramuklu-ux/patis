@@ -8,12 +8,14 @@ import '../models/user_role.dart';
 import '../state/auth_store.dart';
 import '../state/notification_store.dart';
 import '../state/salon_store.dart';
+import '../state/vet_store.dart';
 import '../theme/app_colors.dart';
 import '../widgets/appointment_card.dart';
 import '../widgets/pet_card.dart';
 import '../widgets/salon_appointment_card.dart';
 import '../widgets/section_title.dart';
 import '../widgets/service_grid.dart';
+import '../widgets/vet_appointment_card.dart';
 import 'adoption_screen.dart';
 import 'blog_screen.dart';
 import 'notifications_screen.dart';
@@ -160,9 +162,11 @@ class HomeScreen extends StatelessWidget {
   ) {
     final isVet = role == UserRole.veteriner;
     final businessName = auth.businessName ?? auth.name ?? role.label;
-    // Kuaförün özet sayıları ve randevuları canlı olarak SalonStore'dan gelir;
-    // veteriner için şimdilik sabit mock değerler kullanılır.
-    final salon = isVet ? null : context.watch<SalonStore>();
+    // Özet sayılar ve günün randevuları role göre ilgili depodan canlı gelir.
+    final salon = role == UserRole.kuafor ? context.watch<SalonStore>() : null;
+    final vet = isVet ? context.watch<VetStore>() : null;
+    final todayValue = salon?.todayCount ?? vet?.todayCount ?? 0;
+    final pendingValue = salon?.pendingCount ?? vet?.pendingCount ?? 0;
     return [
       _GreetingHeader(
         title: 'Merhaba, $businessName ${isVet ? '🩺' : '✂️'}',
@@ -173,8 +177,8 @@ class HomeScreen extends StatelessWidget {
       const SizedBox(height: 20),
       _BusinessSummaryCard(
         role: role,
-        todayValue: salon != null ? '${salon.todayCount}' : '8',
-        pendingValue: salon != null ? '${salon.pendingCount}' : '3',
+        todayValue: '$todayValue',
+        pendingValue: '$pendingValue',
       ),
       const SizedBox(height: 28),
       SectionTitle(isVet ? 'Klinik araçları' : 'Salon araçları'),
@@ -193,8 +197,7 @@ class HomeScreen extends StatelessWidget {
         ],
       ),
       const SizedBox(height: 4),
-      // Kuaför: detaylı salon randevu kartları (dokununca Randevular sekmesi).
-      // Veteriner: standart mock randevu kartları.
+      // Günün randevu kartları (dokununca Randevular sekmesine geçer).
       if (salon != null)
         for (final appt in salon.todays) ...[
           SalonAppointmentCard(
@@ -202,10 +205,13 @@ class HomeScreen extends StatelessWidget {
             onTap: () => onSelectTab(2),
           ),
           const SizedBox(height: 12),
-        ]
-      else
-        for (final appt in _todaysAppointments(role)) ...[
-          AppointmentCard(appointment: appt),
+        ],
+      if (vet != null)
+        for (final appt in vet.todays) ...[
+          VetAppointmentCard(
+            appointment: appt,
+            onTap: () => onSelectTab(2),
+          ),
           const SizedBox(height: 12),
         ],
     ];
@@ -266,38 +272,6 @@ class HomeScreen extends StatelessWidget {
             builder: (_) => NotificationsScreen(onSelectTab: onSelectTab),
           ),
         ),
-      ),
-    ];
-  }
-
-  /// İşletmenin bugünkü müşteri randevuları (mock).
-  List<Appointment> _todaysAppointments(UserRole role) {
-    if (role == UserRole.veteriner) {
-      return const [
-        Appointment(
-          title: 'Boncuk — Aşı',
-          place: 'Sahibi: Zeynep A.',
-          dateLabel: '10:00',
-        ),
-        Appointment(
-          title: 'Max — Genel kontrol',
-          place: 'Sahibi: Can D.',
-          dateLabel: '14:30',
-        ),
-      ];
-    }
-    return const [
-      Appointment(
-        title: 'Pamuk — Tıraş & banyo',
-        place: 'Sahibi: Ayşe Y.',
-        dateLabel: '11:00',
-        type: AppointmentType.kuafor,
-      ),
-      Appointment(
-        title: 'Karamel — Tırnak kesimi',
-        place: 'Sahibi: Mert K.',
-        dateLabel: '13:30',
-        type: AppointmentType.kuafor,
       ),
     ];
   }

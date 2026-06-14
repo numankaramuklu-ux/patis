@@ -4,13 +4,14 @@ import 'package:provider/provider.dart';
 import '../models/user_role.dart';
 import '../state/auth_store.dart';
 import 'appointment_screen.dart';
-import 'clients_screen.dart';
 import 'community_screen.dart';
 import 'home_screen.dart';
 import 'lost_pet_screen.dart';
 import 'passport_screen.dart';
 import 'salon_appointments_screen.dart';
 import 'salon_clients_screen.dart';
+import 'vet_appointments_screen.dart';
+import 'vet_patients_screen.dart';
 
 /// Uygulamanın ana kabuğu: alttaki 5 sekmeli navigasyon çubuğu.
 ///
@@ -50,11 +51,9 @@ class _MainScaffoldState extends State<MainScaffold> {
     final screens = <Widget>[
       HomeScreen(onSelectTab: _selectTab),
       _firstTabScreen(role),
-      // Randevu sekmesi: kuaför için detaylı salon randevuları, diğerleri için
-      // standart randevu ekranı.
-      role == UserRole.kuafor
-          ? const SalonAppointmentsScreen()
-          : const AppointmentScreen(),
+      // Randevu sekmesi role göre: kuaför salon randevuları, veteriner klinik
+      // randevuları, sahip standart randevu ekranı.
+      _appointmentsScreen(role),
       const LostPetScreen(),
       const CommunityScreen(),
     ];
@@ -95,16 +94,28 @@ class _MainScaffoldState extends State<MainScaffold> {
     );
   }
 
-  /// 1. sekmenin ekranı: sahip → Pasaport, kuaför → detaylı Müşteriler ekranı,
-  /// veteriner → hasta listesi (mock verili [ClientsScreen]).
+  /// 1. sekmenin ekranı: sahip → Pasaport, kuaför → Müşteriler, veteriner →
+  /// Hastalar (her ikisi de detaylı, mock verili ekranlar).
   Widget _firstTabScreen(UserRole role) {
     switch (role) {
       case UserRole.kuafor:
         return const SalonClientsScreen();
       case UserRole.veteriner:
-        return ClientsScreen(role: role);
+        return const VetPatientsScreen();
       case UserRole.kullanici:
         return const PassportScreen();
+    }
+  }
+
+  /// Randevu sekmesinin ekranı, role göre.
+  Widget _appointmentsScreen(UserRole role) {
+    switch (role) {
+      case UserRole.kuafor:
+        return const SalonAppointmentsScreen();
+      case UserRole.veteriner:
+        return const VetAppointmentsScreen();
+      case UserRole.kullanici:
+        return const AppointmentScreen();
     }
   }
 
