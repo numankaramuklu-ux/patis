@@ -16,5 +16,11 @@ const _monthsShort = <String>[
 /// "10 Mart 2026" biçiminde tam tarih (yıllı).
 String formatTrDate(DateTime dt) => '${dt.day} ${_months[dt.month - 1]} ${dt.year}';
 
+/// "10 Mart" biçiminde gün + ay (yılsız) — takvim ve gün başlıkları için.
+String formatTrDayMonth(DateTime dt) => '${dt.day} ${_months[dt.month - 1]}';
+
+/// "Haziran 2026" biçiminde ay + yıl — takvim başlığı için.
+String formatTrMonthYear(DateTime dt) => '${_months[dt.month - 1]} ${dt.year}';
+
 /// "Mar" gibi kısa ay adı — kilo grafiğinin altındaki etiketler için.
 String trMonthShort(DateTime dt) => _monthsShort[dt.month - 1];

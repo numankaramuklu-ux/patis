@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
+import '../utils/tr_date.dart';
 
 /// Veteriner randevusunun durumu (salon ile aynı akış: bekle → onayla → tamamla).
 enum VetApptStatus {
@@ -58,7 +59,7 @@ class VetAppointment {
     required this.reason,
     required this.durationMin,
     required this.price,
-    required this.dayLabel,
+    required this.date,
     required this.time,
     this.status = VetApptStatus.bekliyor,
   });
@@ -76,9 +77,31 @@ class VetAppointment {
 
   final int durationMin;
   final int price;
-  final String dayLabel;
+
+  /// Randevunun tarihi (saat bilgisi [time]'da ayrı tutulur).
+  final DateTime date;
+
   final String time;
   final VetApptStatus status;
+
+  /// Gün etiketi: bugüne göreceli ("Bugün"/"Yarın"/"Dün") ya da "14 Haziran".
+  /// [date]'ten türetilir; liste görünümünde gruplama başlığı olarak kullanılır.
+  String get dayLabel {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final d = DateTime(date.year, date.month, date.day);
+    final diff = d.difference(today).inDays;
+    switch (diff) {
+      case 0:
+        return 'Bugün';
+      case 1:
+        return 'Yarın';
+      case -1:
+        return 'Dün';
+      default:
+        return formatTrDayMonth(date);
+    }
+  }
 
   VetAppointment copyWith({VetApptStatus? status}) {
     return VetAppointment(
@@ -90,7 +113,7 @@ class VetAppointment {
       reason: reason,
       durationMin: durationMin,
       price: price,
-      dayLabel: dayLabel,
+      date: date,
       time: time,
       status: status ?? this.status,
     );

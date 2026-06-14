@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
+import '../utils/tr_date.dart';
 
 /// Bir salon randevusunun durumu. Her durum kendi etiketini ve rengini taşır
 /// (kartlardaki rozet için).
@@ -30,7 +31,7 @@ class SalonAppointment {
     required this.service,
     required this.durationMin,
     required this.price,
-    required this.dayLabel,
+    required this.date,
     required this.time,
     this.status = SalonApptStatus.bekliyor,
   });
@@ -51,13 +52,32 @@ class SalonAppointment {
   /// Ücret (TL).
   final int price;
 
-  /// Gün etiketi (örn. "Bugün", "Yarın", "14 Haziran").
-  final String dayLabel;
+  /// Randevunun tarihi (saat bilgisi [time]'da ayrı tutulur).
+  final DateTime date;
 
   /// Saat (örn. "11:00").
   final String time;
 
   final SalonApptStatus status;
+
+  /// Gün etiketi: bugüne göreceli ("Bugün"/"Yarın"/"Dün") ya da "14 Haziran".
+  /// [date]'ten türetilir; liste görünümünde gruplama başlığı olarak kullanılır.
+  String get dayLabel {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final d = DateTime(date.year, date.month, date.day);
+    final diff = d.difference(today).inDays;
+    switch (diff) {
+      case 0:
+        return 'Bugün';
+      case 1:
+        return 'Yarın';
+      case -1:
+        return 'Dün';
+      default:
+        return formatTrDayMonth(date);
+    }
+  }
 
   SalonAppointment copyWith({SalonApptStatus? status}) {
     return SalonAppointment(
@@ -68,7 +88,7 @@ class SalonAppointment {
       service: service,
       durationMin: durationMin,
       price: price,
-      dayLabel: dayLabel,
+      date: date,
       time: time,
       status: status ?? this.status,
     );

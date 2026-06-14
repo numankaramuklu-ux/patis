@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import '../models/salon_appointment.dart';
 import '../state/salon_store.dart';
 import '../theme/app_colors.dart';
+import '../utils/tr_date.dart';
+import '../widgets/appointment_calendar.dart';
 import '../widgets/salon_appointment_card.dart';
 
 /// Pet salonunun Randevular ekranı (kuaför rolünün Randevu sekmesi).
@@ -23,23 +25,35 @@ class _SalonAppointmentsScreenState extends State<SalonAppointmentsScreen> {
   // null = "Tümü". Aksi halde sadece bu durumdaki randevular gösterilir.
   SalonApptStatus? _filter;
 
+  // false = liste görünümü, true = takvim görünümü.
+  bool _calendar = false;
+
+  // Takvimde görüntülenen ay ve seçili gün (varsayılan: bugün).
+  late DateTime _focusedMonth;
+  late DateTime _selectedDay;
+
+  @override
+  void initState() {
+    super.initState();
+    final now = DateTime.now();
+    _focusedMonth = DateTime(now.year, now.month);
+    _selectedDay = DateTime(now.year, now.month, now.day);
+  }
+
+  /// İki tarihin aynı güne ait olup olmadığını döndürür (saat yok sayılır).
+  static bool _sameDay(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final store = context.watch<SalonStore>();
     final all = store.appointments;
 
-    // Filtre uygula.
+    // Filtre uygula (her iki görünüm de aynı filtreyi kullanır).
     final filtered = _filter == null
         ? all
         : all.where((a) => a.status == _filter).toList();
-
-    // Güne göre grupla (Bugün önce gelsin diye listedeki sırayı koruyup
-    // benzersiz gün etiketlerini topluyoruz).
-    final days = <String>[];
-    for (final a in filtered) {
-      if (!days.contains(a.dayLabel)) days.add(a.dayLabel);
-    }
 
     return Scaffold(
       body: SafeArea(
@@ -55,37 +69,112 @@ class _SalonAppointmentsScreenState extends State<SalonAppointmentsScreen> {
               ),
             ),
             const SizedBox(height: 16),
+            // Liste / Takvim görünüm geçişi.
+            AppointmentViewToggle(
+              calendar: _calendar,
+              onChanged: (v) => setState(() => _calendar = v),
+            ),
+            const SizedBox(height: 16),
             // Durum filtreleri.
             _FilterChips(
               selected: _filter,
               onChanged: (f) => setState(() => _filter = f),
             ),
             const SizedBox(height: 20),
-            if (filtered.isEmpty)
-              _EmptyState(theme: theme)
+            if (_calendar)
+              ..._calendarView(theme, filtered)
             else
-              for (final day in days) ...[
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 10, top: 4),
-                  child: Text(
-                    day,
-                    style: theme.textTheme.titleLarge,
-                  ),
-                ),
-                for (final appt
-                    in filtered.where((a) => a.dayLabel == day)) ...[
-                  SalonAppointmentCard(
-                    appointment: appt,
-                    onTap: () => _AppointmentDetailSheet.show(context, appt),
-                  ),
-                  const SizedBox(height: 12),
-                ],
-                const SizedBox(height: 12),
-              ],
+              ..._listView(theme, filtered),
           ],
         ),
       ),
     );
+  }
+
+  // ---------------------------------------------------------------------------
+  // LİSTE GÖRÜNÜMÜ
+  // ---------------------------------------------------------------------------
+  List<Widget> _listView(ThemeData theme, List<SalonAppointment> filtered) {
+    if (filtered.isEmpty) return [_EmptyState(theme: theme)];
+
+    // Güne göre grupla (listedeki sırayı koruyup benzersiz gün etiketlerini
+    // topluyoruz; randevular zaten tarih sırasında).
+    final days = <String>[];
+    for (final a in filtered) {
+      if (!days.contains(a.dayLabel)) days.add(a.dayLabel);
+    }
+    return [
+      for (final day in days) ...[
+        Padding(
+          padding: const EdgeInsets.only(bottom: 10, top: 4),
+          child: Text(day, style: theme.textTheme.titleLarge),
+        ),
+        for (final appt in filtered.where((a) => a.dayLabel == day)) ...[
+          SalonAppointmentCard(
+            appointment: appt,
+            onTap: () => _AppointmentDetailSheet.show(context, appt),
+          ),
+          const SizedBox(height: 12),
+        ],
+        const SizedBox(height: 12),
+      ],
+    ];
+  }
+
+  // ---------------------------------------------------------------------------
+  // TAKVİM GÖRÜNÜMÜ
+  // ---------------------------------------------------------------------------
+  List<Widget> _calendarView(ThemeData theme, List<SalonAppointment> filtered) {
+    // Seçili güne ait randevular (saate göre sıralı).
+    final dayAppts = filtered.where((a) => _sameDay(a.date, _selectedDay)).toList()
+      ..sort((a, b) => a.time.compareTo(b.time));
+
+    return [
+      MonthCalendar(
+        focusedMonth: _focusedMonth,
+        selectedDay: _selectedDay,
+        countFor: (day) =>
+            filtered.where((a) => _sameDay(a.date, day)).length,
+        pendingFor: (day) => filtered.any(
+          (a) =>
+              _sameDay(a.date, day) && a.status == SalonApptStatus.bekliyor,
+        ),
+        onPrevMonth: () => setState(() {
+          _focusedMonth =
+              DateTime(_focusedMonth.year, _focusedMonth.month - 1);
+        }),
+        onNextMonth: () => setState(() {
+          _focusedMonth =
+              DateTime(_focusedMonth.year, _focusedMonth.month + 1);
+        }),
+        onSelectDay: (d) => setState(() => _selectedDay = d),
+      ),
+      const SizedBox(height: 24),
+      // Seçili günün başlığı.
+      Row(
+        children: [
+          Text(formatTrDayMonth(_selectedDay), style: theme.textTheme.titleLarge),
+          const SizedBox(width: 8),
+          Text(
+            '${dayAppts.length} randevu',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: AppColors.text.withValues(alpha: 0.6),
+            ),
+          ),
+        ],
+      ),
+      const SizedBox(height: 12),
+      if (dayAppts.isEmpty)
+        _EmptyState(theme: theme, message: 'Bu günde randevu yok')
+      else
+        for (final appt in dayAppts) ...[
+          SalonAppointmentCard(
+            appointment: appt,
+            onTap: () => _AppointmentDetailSheet.show(context, appt),
+          ),
+          const SizedBox(height: 12),
+        ],
+    ];
   }
 }
 
@@ -140,14 +229,15 @@ class _FilterChips extends StatelessWidget {
 
 /// Filtre sonucu boşsa gösterilen durum.
 class _EmptyState extends StatelessWidget {
-  const _EmptyState({required this.theme});
+  const _EmptyState({required this.theme, this.message = 'Bu filtrede randevu yok'});
 
   final ThemeData theme;
+  final String message;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(top: 60),
+      padding: const EdgeInsets.only(top: 40, bottom: 20),
       child: Column(
         children: [
           Icon(
@@ -157,7 +247,7 @@ class _EmptyState extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'Bu filtrede randevu yok',
+            message,
             style: theme.textTheme.titleMedium?.copyWith(
               color: AppColors.text.withValues(alpha: 0.6),
             ),
