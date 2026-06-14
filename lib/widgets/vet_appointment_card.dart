@@ -40,22 +40,28 @@ class VetAppointmentCard extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Column(
-                  children: [
-                    Text(
-                      appointment.time,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.forest,
+                // Saat sütunu. Sabit genişlik veriyoruz; aksi halde orantılı
+                // rakamlar yüzünden "11:00" ile "09:30" farklı genişlikte olur
+                // ve ayraç + sağdaki metinler satırdan satıra kayar.
+                SizedBox(
+                  width: 52,
+                  child: Column(
+                    children: [
+                      Text(
+                        appointment.time,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.forest,
+                        ),
                       ),
-                    ),
-                    Text(
-                      '${appointment.durationMin} dk',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: AppColors.text.withValues(alpha: 0.5),
+                      Text(
+                        '${appointment.durationMin} dk',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: AppColors.text.withValues(alpha: 0.5),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
                 const SizedBox(width: 14),
                 Container(
