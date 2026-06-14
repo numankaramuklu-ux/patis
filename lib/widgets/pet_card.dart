@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../models/pet.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_theme.dart';
 
 /// Kullanıcının evcil hayvanını gösteren büyük yeşil kart.
 ///
@@ -25,13 +26,18 @@ class PetCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    // Material + InkWell: forest zemini + dokununca dalga (ripple) efekti.
-    return Material(
-      color: AppColors.forest,
-      borderRadius: BorderRadius.circular(28),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
+    // Yumuşak gölge (derinlik) + forest zemini + dokununca dalga efekti.
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: AppTheme.softShadow,
+      ),
+      child: Material(
+        color: AppColors.forest,
+        borderRadius: BorderRadius.circular(28),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Row(
@@ -81,6 +87,7 @@ class PetCard extends StatelessWidget {
               ),
             ],
           ),
+        ),
         ),
       ),
     );

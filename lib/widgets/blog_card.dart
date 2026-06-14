@@ -17,11 +17,14 @@ class BlogCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final accent = post.category.color;
-    // Material + InkWell: kart zemini + dokununca dalga (ripple) efekti.
+    // Material + InkWell: kart zemini + yumuşak gölge + dokununca dalga efekti.
     return Material(
       color: AppColors.card,
       borderRadius: BorderRadius.circular(24),
       clipBehavior: Clip.antiAlias,
+      elevation: 2,
+      shadowColor: AppColors.forest.withValues(alpha: 0.12),
+      surfaceTintColor: Colors.transparent,
       child: InkWell(
         onTap: onTap,
         child: Padding(
