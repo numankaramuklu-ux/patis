@@ -8,6 +8,12 @@ class Pet {
     required this.name,
     required this.breed,
     required this.ageLabel,
+    this.species,
+    this.gender,
+    this.birthDateLabel,
+    this.colorLabel,
+    this.microchip,
+    this.registrationNo,
   });
 
   /// Hayvanın adı (örn. "Pamuk").
@@ -18,4 +24,26 @@ class Pet {
 
   /// Yaş etiketi (örn. "2 yaşında").
   final String ageLabel;
+
+  // ---- Künye (pasaport) alanları ----
+  // Hepsi isteğe bağlı; yalnızca Dijital Pasaport ekranında doldurulur, ana
+  // sayfa/pet kartı gibi yerlerde verilmez (o kullanımlar bozulmaz).
+
+  /// Tür (örn. "Kedi", "Köpek").
+  final String? species;
+
+  /// Cinsiyet (örn. "Dişi", "Erkek").
+  final String? gender;
+
+  /// Doğum tarihi etiketi (örn. "14 Mart 2024").
+  final String? birthDateLabel;
+
+  /// Renk / desen (örn. "Beyaz").
+  final String? colorLabel;
+
+  /// Mikroçip numarası.
+  final String? microchip;
+
+  /// Pasaport / kayıt numarası.
+  final String? registrationNo;
 }
