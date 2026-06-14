@@ -6,26 +6,33 @@ import '../theme/app_colors.dart';
 /// Kayıp/Bulundu listesindeki tek bir ilanı gösteren kart.
 ///
 /// Veriyi dışarıdan [LostPet] olarak alır. Kartın rengi ilanın durumundan
-/// (Kayıp → terracotta, Bulundu → yeşil) gelir.
+/// (Kayıp → terracotta, Bulundu → yeşil) gelir. [onTap] verilirse karta
+/// dokununca detay ekranı açılır.
 class LostPetCard extends StatelessWidget {
-  const LostPetCard({super.key, required this.lostPet});
+  const LostPetCard({super.key, required this.lostPet, this.onTap});
 
   final LostPet lostPet;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final accent = lostPet.status.color;
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: accent.withValues(alpha: 0.4)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+    return Material(
+      color: AppColors.card,
+      borderRadius: BorderRadius.circular(24),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: accent.withValues(alpha: 0.4)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
           // Üst satır: durum rozeti (Kayıp/Bulundu) ve varsa "Ödüllü" rozeti.
           Row(
             children: [
@@ -103,7 +110,9 @@ class LostPetCard extends StatelessWidget {
               height: 1.3,
             ),
           ),
-        ],
+            ],
+          ),
+        ),
       ),
     );
   }

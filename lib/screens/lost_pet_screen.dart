@@ -5,6 +5,7 @@ import '../state/lost_pet_store.dart';
 import '../theme/app_colors.dart';
 import '../widgets/lost_pet_card.dart';
 import '../widgets/new_lost_pet_sheet.dart';
+import 'lost_pet_detail_screen.dart';
 
 /// Kayıp / Bulundu ilanları ekranı (yol haritası #5).
 ///
@@ -34,7 +35,14 @@ class LostPetScreen extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             for (final lostPet in lostPets) ...[
-              LostPetCard(lostPet: lostPet),
+              LostPetCard(
+                lostPet: lostPet,
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => LostPetDetailScreen(lostPet: lostPet),
+                  ),
+                ),
+              ),
               const SizedBox(height: 12),
             ],
           ],
