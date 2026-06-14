@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 
 import '../models/vet_appointment.dart';
 import '../models/vet_patient.dart';
+import '../models/vet_prescription.dart';
 
 /// Veteriner kliniği panelinin tüm verisini tutan "depo".
 ///
@@ -306,6 +307,26 @@ class VetStore extends ChangeNotifier {
     final i = _appointments.indexWhere((a) => a.id == id);
     if (i == -1) return;
     _appointments[i] = _appointments[i].copyWith(status: status);
+    notifyListeners();
+  }
+
+  /// Yeni bir randevu ekler (hasta detayından "Randevu" ile oluşturulur).
+  /// En üstte görünsün diye başa ekler.
+  void addAppointment(VetAppointment appointment) {
+    _appointments.insert(0, appointment);
+    notifyListeners();
+  }
+
+  // ---- Reçeteler (hasta kimliğine göre) ----
+  final Map<String, List<VetPrescription>> _prescriptions = {};
+
+  /// Verilen hastanın reçeteleri (en yeni en üstte; değiştirilemez kopya).
+  List<VetPrescription> prescriptionsFor(String patientId) =>
+      List.unmodifiable(_prescriptions[patientId] ?? const []);
+
+  /// Bir hastaya yeni reçete ekler.
+  void addPrescription(String patientId, VetPrescription prescription) {
+    (_prescriptions[patientId] ??= []).insert(0, prescription);
     notifyListeners();
   }
 }
