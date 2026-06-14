@@ -13,7 +13,8 @@ class BlogScreen extends StatelessWidget {
   const BlogScreen({super.key});
 
   // ---- Mock (sahte) yazılar ----
-  static const _posts = <BlogPost>[
+  // Ana ekrandaki "Senin için" bölümü de bu listeyi kullandığı için public.
+  static const posts = <BlogPost>[
     BlogPost(
       title: 'Kedinizin tüy bakımı için 5 ipucu',
       category: BlogCategory.bakim,
@@ -112,7 +113,7 @@ class BlogScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
-            for (final post in _posts) ...[
+            for (final post in posts) ...[
               BlogCard(
                 post: post,
                 // Karta dokununca o yazının detay ekranını aç.

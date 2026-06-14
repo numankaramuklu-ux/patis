@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 import '../models/pet.dart';
@@ -8,13 +10,17 @@ import '../theme/app_colors.dart';
 /// Veriyi dışarıdan bir [Pet] nesnesi olarak alır; böylece kartın kendisi
 /// "hangi hayvan" olduğunu bilmez, sadece verileni çizer (yeniden kullanılır).
 class PetCard extends StatelessWidget {
-  const PetCard({super.key, required this.pet, this.onTap});
+  const PetCard({super.key, required this.pet, this.onTap, this.photoPath});
 
   final Pet pet;
 
   /// Karta dokununca çalışır (örn. Pasaport ekranına gitmek). İsteğe bağlı;
   /// verilmezse kart tıklanmaz.
   final VoidCallback? onTap;
+
+  /// Pasaportta seçilen profil fotoğrafının yolu. Verilirse avatarda gösterilir,
+  /// yoksa varsayılan pati ikonu kalır.
+  final String? photoPath;
 
   @override
   Widget build(BuildContext context) {
@@ -30,16 +36,23 @@ class PetCard extends StatelessWidget {
           padding: const EdgeInsets.all(20),
           child: Row(
             children: [
-              // Hayvanın avatarı — şimdilik ikon, ileride gerçek fotoğraf.
+              // Hayvanın avatarı — pasaportta fotoğraf seçildiyse o gösterilir.
               Container(
                 width: 64,
                 height: 64,
                 decoration: BoxDecoration(
                   color: AppColors.cream.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
+                  image: photoPath != null
+                      ? DecorationImage(
+                          image: FileImage(File(photoPath!)),
+                          fit: BoxFit.cover,
+                        )
+                      : null,
                 ),
-                child:
-                    const Icon(Icons.pets, color: AppColors.cream, size: 32),
+                child: photoPath == null
+                    ? const Icon(Icons.pets, color: AppColors.cream, size: 32)
+                    : null,
               ),
               const SizedBox(width: 16),
               Expanded(
