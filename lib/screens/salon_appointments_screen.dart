@@ -113,6 +113,8 @@ class _SalonAppointmentsScreenState extends State<SalonAppointmentsScreen> {
           SalonAppointmentCard(
             appointment: appt,
             onTap: () => _AppointmentDetailSheet.show(context, appt),
+            onStatusChanged: (s) =>
+                context.read<SalonStore>().updateStatus(appt.id, s),
           ),
           const SizedBox(height: 12),
         ],
@@ -171,6 +173,8 @@ class _SalonAppointmentsScreenState extends State<SalonAppointmentsScreen> {
           SalonAppointmentCard(
             appointment: appt,
             onTap: () => _AppointmentDetailSheet.show(context, appt),
+            onStatusChanged: (s) =>
+                context.read<SalonStore>().updateStatus(appt.id, s),
           ),
           const SizedBox(height: 12),
         ],

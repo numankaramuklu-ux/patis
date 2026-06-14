@@ -107,6 +107,8 @@ class _VetAppointmentsScreenState extends State<VetAppointmentsScreen> {
           VetAppointmentCard(
             appointment: appt,
             onTap: () => _AppointmentDetailSheet.show(context, appt),
+            onStatusChanged: (s) =>
+                context.read<VetStore>().updateStatus(appt.id, s),
           ),
           const SizedBox(height: 12),
         ],
@@ -162,6 +164,8 @@ class _VetAppointmentsScreenState extends State<VetAppointmentsScreen> {
           VetAppointmentCard(
             appointment: appt,
             onTap: () => _AppointmentDetailSheet.show(context, appt),
+            onStatusChanged: (s) =>
+                context.read<VetStore>().updateStatus(appt.id, s),
           ),
           const SizedBox(height: 12),
         ],
