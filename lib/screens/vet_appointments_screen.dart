@@ -6,6 +6,7 @@ import '../state/vet_store.dart';
 import '../theme/app_colors.dart';
 import '../utils/tr_date.dart';
 import '../widgets/appointment_calendar.dart';
+import '../widgets/entity_filter.dart';
 import '../widgets/vet_appointment_card.dart';
 
 /// Veteriner kliniğinin Randevular ekranı (veteriner rolünün Randevu sekmesi).
@@ -21,6 +22,10 @@ class VetAppointmentsScreen extends StatefulWidget {
 
 class _VetAppointmentsScreenState extends State<VetAppointmentsScreen> {
   VetApptStatus? _filter;
+
+  // null = tüm hastalar. Aksi halde sadece bu hastanın ([VetPatient.id])
+  // randevuları gösterilir.
+  String? _patientFilter;
 
   // false = liste görünümü, true = takvim görünümü.
   bool _calendar = false;
@@ -47,10 +52,19 @@ class _VetAppointmentsScreenState extends State<VetAppointmentsScreen> {
     final store = context.watch<VetStore>();
     final all = store.appointments;
 
-    // Filtre uygula (her iki görünüm de aynı filtreyi kullanır).
-    final filtered = _filter == null
-        ? all
-        : all.where((a) => a.status == _filter).toList();
+    // Hasta filtre seçenekleri: kayıtlı hastalar (kimlik → ad).
+    final patientOptions = {for (final p in store.patients) p.id: p.petName};
+    // Seçili hasta artık yoksa Tümü'ne düş.
+    if (_patientFilter != null && !patientOptions.containsKey(_patientFilter)) {
+      _patientFilter = null;
+    }
+
+    // Durum + hasta filtrelerini uygula (her iki görünüm de aynı sonucu kullanır).
+    final filtered = all.where((a) {
+      if (_filter != null && a.status != _filter) return false;
+      if (_patientFilter != null && a.patientId != _patientFilter) return false;
+      return true;
+    }).toList();
 
     return Scaffold(
       body: SafeArea(
@@ -75,6 +89,14 @@ class _VetAppointmentsScreenState extends State<VetAppointmentsScreen> {
             _FilterChips(
               selected: _filter,
               onChanged: (f) => setState(() => _filter = f),
+            ),
+            const SizedBox(height: 12),
+            // Hastaya göre filtre (kayıt kimliği üzerinden).
+            EntityFilter(
+              label: 'Hasta',
+              options: patientOptions,
+              selected: _patientFilter,
+              onChanged: (v) => setState(() => _patientFilter = v),
             ),
             const SizedBox(height: 20),
             if (_calendar)

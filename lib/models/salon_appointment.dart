@@ -34,10 +34,15 @@ class SalonAppointment {
     required this.date,
     required this.time,
     this.status = SalonApptStatus.bekliyor,
+    this.clientId,
   });
 
   /// Listede güncellerken bulmak için benzersiz kimlik.
   final String id;
+
+  /// Bu randevunun ait olduğu müşteri ([SalonClient.id]). Kayıtlı bir müşteri
+  /// değilse (ör. tek seferlik gelen) null olabilir.
+  final String? clientId;
 
   final String petName;
   final String breed;
@@ -91,6 +96,42 @@ class SalonAppointment {
       date: date,
       time: time,
       status: status ?? this.status,
+      clientId: clientId,
     );
   }
+
+  /// Cihazda saklamak (shared_preferences) için Map'e çevirir. Tarih ISO 8601
+  /// metni, durum enum adı olarak yazılır.
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'petName': petName,
+        'breed': breed,
+        'ownerName': ownerName,
+        'service': service,
+        'durationMin': durationMin,
+        'price': price,
+        'date': date.toIso8601String(),
+        'time': time,
+        'status': status.name,
+        'clientId': clientId,
+      };
+
+  /// Saklanan Map'ten [SalonAppointment] üretir. Bilinmeyen durum bekliyor'a düşer.
+  factory SalonAppointment.fromJson(Map<String, dynamic> json) =>
+      SalonAppointment(
+        id: json['id'] as String? ?? '',
+        petName: json['petName'] as String? ?? '',
+        breed: json['breed'] as String? ?? '',
+        ownerName: json['ownerName'] as String? ?? '',
+        service: json['service'] as String? ?? '',
+        durationMin: (json['durationMin'] as num?)?.toInt() ?? 0,
+        price: (json['price'] as num?)?.toInt() ?? 0,
+        date: DateTime.tryParse(json['date'] as String? ?? '') ?? DateTime.now(),
+        time: json['time'] as String? ?? '',
+        status: SalonApptStatus.values.firstWhere(
+          (s) => s.name == json['status'],
+          orElse: () => SalonApptStatus.bekliyor,
+        ),
+        clientId: json['clientId'] as String?,
+      );
 }

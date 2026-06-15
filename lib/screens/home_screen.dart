@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../models/appointment.dart';
 import '../models/blog_post.dart';
-import '../models/pet.dart';
 import '../models/pet_service.dart';
 import '../models/user_role.dart';
+import '../state/appointment_store.dart';
 import '../state/auth_store.dart';
 import '../state/notification_store.dart';
 import '../state/passport_store.dart';
@@ -22,6 +21,7 @@ import 'blog_detail_screen.dart';
 import 'blog_screen.dart';
 import 'notifications_screen.dart';
 import 'pet_sitter_screen.dart';
+import 'profile_screen.dart';
 
 /// Uygulamanın açılış (Ana Sayfa) ekranı.
 ///
@@ -35,19 +35,6 @@ class HomeScreen extends StatelessWidget {
 
   /// Alt menüde bir sekmeye geçmek için çağrılır (MainScaffold'dan gelir).
   final ValueChanged<int> onSelectTab;
-
-  // ---- Mock (sahte) veriler ----
-  static const _pet = Pet(
-    name: 'Pamuk',
-    breed: 'British Shorthair',
-    ageLabel: '2 yaşında',
-  );
-
-  static const _nextAppointment = Appointment(
-    title: 'Aşı kontrolü',
-    place: 'Patiş Veteriner Kliniği',
-    dateLabel: '12 Haziran, 14:30',
-  );
 
   @override
   Widget build(BuildContext context) {
@@ -81,6 +68,10 @@ class HomeScreen extends StatelessWidget {
     final upcomingVaccines =
         passport.vaccinations.where((v) => v.nextDueLabel != null).toList();
     final nextVacc = upcomingVaccines.isNotEmpty ? upcomingVaccines.first : null;
+    // Aktif hayvanın ilk randevusu (varsa) — "Yaklaşanlar"da gösterilir.
+    final petAppts =
+        context.watch<AppointmentStore>().appointmentsFor(passport.selectedId);
+    final nextAppt = petAppts.isNotEmpty ? petAppts.first : null;
 
     return [
       // Başlık + bildirim zili.
@@ -100,12 +91,13 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
           ),
+          const _ProfileButton(),
         ],
       ),
       const SizedBox(height: 20),
-      // Pet kartı — pasaport fotoğrafıyla. Dokununca Pasaport sekmesine geç.
+      // Pet kartı — pasaport künyesi + fotoğrafıyla. Dokununca Pasaport'a geç.
       PetCard(
-        pet: _pet,
+        pet: passport.pet,
         photoPath: passport.photoPath,
         onTap: () => onSelectTab(1),
       ),
@@ -119,29 +111,32 @@ class HomeScreen extends StatelessWidget {
       ),
       const SizedBox(height: 28),
 
-      // Yaklaşanlar: randevu + sıradaki aşı.
-      const SectionTitle('Yaklaşanlar'),
-      const SizedBox(height: 12),
-      _ReminderCard(
-        icon: Icons.event_outlined,
-        accent: AppColors.gold,
-        title: _nextAppointment.title,
-        subtitle: _nextAppointment.place,
-        trailing: _nextAppointment.dateLabel,
-        onTap: () => onSelectTab(2),
-      ),
-      if (nextVacc != null) ...[
+      // Yaklaşanlar: aktif hayvanın randevusu + sıradaki aşısı. İkisi de yoksa
+      // bölüm hiç gösterilmez (örn. yeni eklenen, kaydı boş bir dost).
+      if (nextAppt != null || nextVacc != null) ...[
+        const SectionTitle('Yaklaşanlar'),
         const SizedBox(height: 12),
-        _ReminderCard(
-          icon: Icons.vaccines_outlined,
-          accent: AppColors.forest,
-          title: '${nextVacc.name} aşısı',
-          subtitle: 'Sıradaki doz',
-          trailing: nextVacc.nextDueLabel!,
-          onTap: () => onSelectTab(1),
-        ),
+        if (nextAppt != null)
+          _ReminderCard(
+            icon: Icons.event_outlined,
+            accent: AppColors.gold,
+            title: nextAppt.title,
+            subtitle: nextAppt.place,
+            trailing: nextAppt.dateLabel,
+            onTap: () => onSelectTab(2),
+          ),
+        if (nextAppt != null && nextVacc != null) const SizedBox(height: 12),
+        if (nextVacc != null)
+          _ReminderCard(
+            icon: Icons.vaccines_outlined,
+            accent: AppColors.forest,
+            title: '${nextVacc.name} aşısı',
+            subtitle: 'Sıradaki doz',
+            trailing: nextVacc.nextDueLabel!,
+            onTap: () => onSelectTab(1),
+          ),
+        const SizedBox(height: 28),
       ],
-      const SizedBox(height: 28),
 
       const SectionTitle('Tüm hizmetler'),
       const SizedBox(height: 12),
@@ -252,11 +247,18 @@ class HomeScreen extends StatelessWidget {
     final todayValue = salon?.todayCount ?? vet?.todayCount ?? 0;
     final pendingValue = salon?.pendingCount ?? vet?.pendingCount ?? 0;
     return [
-      _GreetingHeader(
-        title: 'Merhaba, $businessName ${isVet ? '🩺' : '✂️'}',
-        subtitle: isVet
-            ? 'Bugünkü hastaların hazır'
-            : 'Bugünkü randevuların hazır',
+      Row(
+        children: [
+          Expanded(
+            child: _GreetingHeader(
+              title: 'Merhaba, $businessName ${isVet ? '🩺' : '✂️'}',
+              subtitle: isVet
+                  ? 'Bugünkü hastaların hazır'
+                  : 'Bugünkü randevuların hazır',
+            ),
+          ),
+          const _ProfileButton(),
+        ],
       ),
       const SizedBox(height: 20),
       _BusinessSummaryCard(
@@ -391,6 +393,26 @@ class _GreetingHeader extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Başlıktaki profil düğmesi — dokununca hesap (profil) ekranını açar.
+class _ProfileButton extends StatelessWidget {
+  const _ProfileButton();
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      tooltip: 'Hesabım',
+      onPressed: () => Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const ProfileScreen()),
+      ),
+      icon: CircleAvatar(
+        radius: 18,
+        backgroundColor: AppColors.forest.withValues(alpha: 0.12),
+        child: const Icon(Icons.person_outline, color: AppColors.forest),
+      ),
     );
   }
 }

@@ -35,6 +35,27 @@ class AppNotification {
   /// Kullanıcı bu bildirimi okudu mu? (değişebilir)
   bool read;
 
+  /// Cihazda saklamak (shared_preferences) için Map'e çevirir. Tür enum adı.
+  Map<String, dynamic> toJson() => {
+        'kind': kind.name,
+        'title': title,
+        'body': body,
+        'timeAgo': timeAgo,
+        'read': read,
+      };
+
+  /// Saklanan Map'ten [AppNotification] üretir. Bilinmeyen tür system'a düşer.
+  factory AppNotification.fromJson(Map<String, dynamic> json) => AppNotification(
+        kind: NotificationKind.values.firstWhere(
+          (k) => k.name == json['kind'],
+          orElse: () => NotificationKind.system,
+        ),
+        title: json['title'] as String? ?? '',
+        body: json['body'] as String? ?? '',
+        timeAgo: json['timeAgo'] as String? ?? '',
+        read: json['read'] as bool? ?? false,
+      );
+
   /// Türüne göre gösterilecek ikon.
   IconData get icon {
     switch (kind) {

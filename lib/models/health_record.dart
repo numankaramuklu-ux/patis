@@ -18,4 +18,16 @@ class HealthRecord {
   /// - Alerji için: belirti/şiddet (örn. "Ciltte kaşıntı yapıyor").
   /// - İlaç için: doz ve zaman (örn. "Ayda 1 damla • boyun arkası").
   final String note;
+
+  /// Cihazda saklamak (shared_preferences) için Map'e çevirir.
+  Map<String, dynamic> toJson() => {
+        'title': title,
+        'note': note,
+      };
+
+  /// Saklanan Map'ten [HealthRecord] üretir.
+  factory HealthRecord.fromJson(Map<String, dynamic> json) => HealthRecord(
+        title: json['title'] as String? ?? '',
+        note: json['note'] as String? ?? '',
+      );
 }

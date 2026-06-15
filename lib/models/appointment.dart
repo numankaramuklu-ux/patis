@@ -38,6 +38,7 @@ class Appointment {
     required this.place,
     required this.dateLabel,
     this.type = AppointmentType.veteriner,
+    this.petId,
   });
 
   /// Randevunun konusu (örn. "Aşı kontrolü").
@@ -54,4 +55,31 @@ class Appointment {
   /// Vermezsen varsayılan olarak [AppointmentType.veteriner] kabul edilir;
   /// böylece eski kullanım yerleri (Ana Sayfa) bozulmadan çalışmaya devam eder.
   final AppointmentType type;
+
+  /// Bu randevunun hangi evcil hayvana ait olduğu ([PetProfile.id]). Çoklu
+  /// hayvan desteğiyle eklendi; eski/sahipsiz kayıtlarda null olabilir.
+  final String? petId;
+
+  /// Cihazda saklamak (shared_preferences) için Map'e çevirir.
+  /// Tür, enum adı (örn. "kuafor") olarak yazılır.
+  Map<String, dynamic> toJson() => {
+        'title': title,
+        'place': place,
+        'dateLabel': dateLabel,
+        'type': type.name,
+        'petId': petId,
+      };
+
+  /// Saklanan Map'ten [Appointment] üretir. Bilinmeyen/eksik tür varsayılana
+  /// (veteriner) düşer.
+  factory Appointment.fromJson(Map<String, dynamic> json) => Appointment(
+        title: json['title'] as String? ?? '',
+        place: json['place'] as String? ?? '',
+        dateLabel: json['dateLabel'] as String? ?? '',
+        type: AppointmentType.values.firstWhere(
+          (t) => t.name == json['type'],
+          orElse: () => AppointmentType.veteriner,
+        ),
+        petId: json['petId'] as String?,
+      );
 }

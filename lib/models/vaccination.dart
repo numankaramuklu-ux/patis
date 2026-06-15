@@ -21,4 +21,18 @@ class Vaccination {
   ///
   /// Tekrar gerektirmeyen aşılar için `null` olabilir; o yüzden zorunlu değil.
   final String? nextDueLabel;
+
+  /// Cihazda saklamak (shared_preferences) için Map'e çevirir.
+  Map<String, dynamic> toJson() => {
+        'name': name,
+        'dateLabel': dateLabel,
+        'nextDueLabel': nextDueLabel,
+      };
+
+  /// Saklanan Map'ten [Vaccination] üretir.
+  factory Vaccination.fromJson(Map<String, dynamic> json) => Vaccination(
+        name: json['name'] as String? ?? '',
+        dateLabel: json['dateLabel'] as String? ?? '',
+        nextDueLabel: json['nextDueLabel'] as String?,
+      );
 }

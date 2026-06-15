@@ -6,6 +6,8 @@ import '../state/salon_store.dart';
 import '../theme/app_colors.dart';
 import '../utils/tr_date.dart';
 import '../widgets/appointment_calendar.dart';
+import '../widgets/entity_filter.dart';
+import '../widgets/new_salon_appointment_sheet.dart';
 import '../widgets/salon_appointment_card.dart';
 
 /// Pet salonunun Randevular ekranı (kuaför rolünün Randevu sekmesi).
@@ -24,6 +26,10 @@ class SalonAppointmentsScreen extends StatefulWidget {
 class _SalonAppointmentsScreenState extends State<SalonAppointmentsScreen> {
   // null = "Tümü". Aksi halde sadece bu durumdaki randevular gösterilir.
   SalonApptStatus? _filter;
+
+  // null = tüm müşteriler. Aksi halde sadece bu müşterinin ([SalonClient.id])
+  // randevuları gösterilir.
+  String? _clientFilter;
 
   // false = liste görünümü, true = takvim görünümü.
   bool _calendar = false;
@@ -50,10 +56,19 @@ class _SalonAppointmentsScreenState extends State<SalonAppointmentsScreen> {
     final store = context.watch<SalonStore>();
     final all = store.appointments;
 
-    // Filtre uygula (her iki görünüm de aynı filtreyi kullanır).
-    final filtered = _filter == null
-        ? all
-        : all.where((a) => a.status == _filter).toList();
+    // Müşteri filtre seçenekleri: kayıtlı müşteriler (kimlik → ad).
+    final clientOptions = {for (final c in store.clients) c.id: c.petName};
+    // Seçili müşteri artık yoksa Tümü'ne düş.
+    if (_clientFilter != null && !clientOptions.containsKey(_clientFilter)) {
+      _clientFilter = null;
+    }
+
+    // Durum + müşteri filtrelerini uygula (her iki görünüm de aynı sonucu kullanır).
+    final filtered = all.where((a) {
+      if (_filter != null && a.status != _filter) return false;
+      if (_clientFilter != null && a.clientId != _clientFilter) return false;
+      return true;
+    }).toList();
 
     return Scaffold(
       body: SafeArea(
@@ -80,6 +95,14 @@ class _SalonAppointmentsScreenState extends State<SalonAppointmentsScreen> {
               selected: _filter,
               onChanged: (f) => setState(() => _filter = f),
             ),
+            const SizedBox(height: 12),
+            // Müşteriye göre filtre (kayıt kimliği üzerinden).
+            EntityFilter(
+              label: 'Müşteri',
+              options: clientOptions,
+              selected: _clientFilter,
+              onChanged: (v) => setState(() => _clientFilter = v),
+            ),
             const SizedBox(height: 20),
             if (_calendar)
               ..._calendarView(theme, filtered)
@@ -87,6 +110,13 @@ class _SalonAppointmentsScreenState extends State<SalonAppointmentsScreen> {
               ..._listView(theme, filtered),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => NewSalonAppointmentSheet.show(context),
+        backgroundColor: AppColors.forest,
+        foregroundColor: AppColors.cream,
+        icon: const Icon(Icons.add),
+        label: const Text('Yeni randevu'),
       ),
     );
   }

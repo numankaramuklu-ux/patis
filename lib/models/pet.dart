@@ -46,4 +46,60 @@ class Pet {
 
   /// Pasaport / kayıt numarası.
   final String? registrationNo;
+
+  /// Verilen alanları değiştirip yeni bir [Pet] üretir (düzenleme formu için).
+  /// Boş string geçirilen isteğe bağlı alanlar null'a çevrilir ki künyede
+  /// boş satır görünmesin.
+  Pet copyWith({
+    String? name,
+    String? breed,
+    String? ageLabel,
+    String? species,
+    String? gender,
+    String? birthDateLabel,
+    String? colorLabel,
+    String? microchip,
+    String? registrationNo,
+  }) {
+    String? clean(String? v) => (v == null || v.trim().isEmpty) ? null : v.trim();
+    return Pet(
+      name: name ?? this.name,
+      breed: breed ?? this.breed,
+      ageLabel: ageLabel ?? this.ageLabel,
+      species: species != null ? clean(species) : this.species,
+      gender: gender != null ? clean(gender) : this.gender,
+      birthDateLabel:
+          birthDateLabel != null ? clean(birthDateLabel) : this.birthDateLabel,
+      colorLabel: colorLabel != null ? clean(colorLabel) : this.colorLabel,
+      microchip: microchip != null ? clean(microchip) : this.microchip,
+      registrationNo:
+          registrationNo != null ? clean(registrationNo) : this.registrationNo,
+    );
+  }
+
+  /// Cihazda saklamak (shared_preferences) için Map'e çevirir.
+  Map<String, dynamic> toJson() => {
+        'name': name,
+        'breed': breed,
+        'ageLabel': ageLabel,
+        'species': species,
+        'gender': gender,
+        'birthDateLabel': birthDateLabel,
+        'colorLabel': colorLabel,
+        'microchip': microchip,
+        'registrationNo': registrationNo,
+      };
+
+  /// Saklanan Map'ten [Pet] üretir.
+  factory Pet.fromJson(Map<String, dynamic> json) => Pet(
+        name: json['name'] as String? ?? '',
+        breed: json['breed'] as String? ?? '',
+        ageLabel: json['ageLabel'] as String? ?? '',
+        species: json['species'] as String?,
+        gender: json['gender'] as String?,
+        birthDateLabel: json['birthDateLabel'] as String?,
+        colorLabel: json['colorLabel'] as String?,
+        microchip: json['microchip'] as String?,
+        registrationNo: json['registrationNo'] as String?,
+      );
 }

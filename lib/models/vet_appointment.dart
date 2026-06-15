@@ -62,12 +62,17 @@ class VetAppointment {
     required this.date,
     required this.time,
     this.status = VetApptStatus.bekliyor,
+    this.patientId,
   });
 
   final String id;
   final String petName;
   final String breed;
   final String ownerName;
+
+  /// Bu randevunun ait olduğu hasta ([VetPatient.id]). Kayıtlı bir hasta
+  /// değilse (ör. ilk kez gelen) null olabilir.
+  final String? patientId;
 
   /// Randevu türü (ikon/renk için).
   final VetApptType type;
@@ -116,6 +121,47 @@ class VetAppointment {
       date: date,
       time: time,
       status: status ?? this.status,
+      patientId: patientId,
     );
   }
+
+  /// Cihazda saklamak (shared_preferences) için Map'e çevirir. Tarih ISO 8601
+  /// metni, tür ve durum enum adı olarak yazılır.
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'petName': petName,
+        'breed': breed,
+        'ownerName': ownerName,
+        'type': type.name,
+        'reason': reason,
+        'durationMin': durationMin,
+        'price': price,
+        'date': date.toIso8601String(),
+        'time': time,
+        'status': status.name,
+        'patientId': patientId,
+      };
+
+  /// Saklanan Map'ten [VetAppointment] üretir. Bilinmeyen tür/durum varsayılana
+  /// (kontrol / bekliyor) düşer.
+  factory VetAppointment.fromJson(Map<String, dynamic> json) => VetAppointment(
+        id: json['id'] as String? ?? '',
+        petName: json['petName'] as String? ?? '',
+        breed: json['breed'] as String? ?? '',
+        ownerName: json['ownerName'] as String? ?? '',
+        type: VetApptType.values.firstWhere(
+          (t) => t.name == json['type'],
+          orElse: () => VetApptType.kontrol,
+        ),
+        reason: json['reason'] as String? ?? '',
+        durationMin: (json['durationMin'] as num?)?.toInt() ?? 0,
+        price: (json['price'] as num?)?.toInt() ?? 0,
+        date: DateTime.tryParse(json['date'] as String? ?? '') ?? DateTime.now(),
+        time: json['time'] as String? ?? '',
+        status: VetApptStatus.values.firstWhere(
+          (s) => s.name == json['status'],
+          orElse: () => VetApptStatus.bekliyor,
+        ),
+        patientId: json['patientId'] as String?,
+      );
 }

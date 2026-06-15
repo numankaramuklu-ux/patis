@@ -105,6 +105,7 @@ class _NewVetAppointmentSheetState extends State<NewVetAppointmentSheet> {
     context.read<VetStore>().addAppointment(
           VetAppointment(
             id: 'v${DateTime.now().millisecondsSinceEpoch}',
+            patientId: widget.patient.id,
             petName: widget.patient.petName,
             breed: widget.patient.breed,
             ownerName: widget.patient.ownerName,

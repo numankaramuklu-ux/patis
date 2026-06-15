@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'screens/main_scaffold.dart';
 import 'screens/register_screen.dart';
 import 'state/appointment_store.dart';
 import 'state/auth_store.dart';
@@ -44,8 +45,40 @@ class PatisApp extends StatelessWidget {
         title: 'Patiş',
         debugShowCheckedModeBanner: false, // sağ üstteki "DEBUG" şeridini gizler
         theme: AppTheme.light(),
-        // Açılışta kayıt ekranı; kayıt/giriş sonrası MainScaffold'a geçilir.
-        home: const RegisterScreen(),
+        // Açılış kapısı: oturum yoksa kayıt/giriş, varsa ana ekran gösterilir.
+        home: const AuthGate(),
+      ),
+    );
+  }
+}
+
+/// Oturum durumuna göre doğru ekranı gösteren "kapı".
+///
+/// [AuthStore]'u dinler: kayıtlı oturum diskten yüklenene kadar bir açılış
+/// (splash) ekranı; ardından kullanıcı giriş yapmadıysa kayıt ekranını,
+/// giriş/kayıt tamamlanınca ana ekranı (MainScaffold) gösterir. Çıkış
+/// yapılınca otomatik olarak yeniden kayıt ekranına döner — ekranlar arası
+/// elle yönlendirme yapmaya gerek kalmaz.
+class AuthGate extends StatelessWidget {
+  const AuthGate({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final auth = context.watch<AuthStore>();
+    if (!auth.isReady) return const _SplashScreen();
+    return auth.isLoggedIn ? const MainScaffold() : const RegisterScreen();
+  }
+}
+
+/// Kayıtlı oturum diskten okunurken gösterilen kısa açılış ekranı.
+class _SplashScreen extends StatelessWidget {
+  const _SplashScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      body: Center(
+        child: Icon(Icons.pets, size: 56),
       ),
     );
   }

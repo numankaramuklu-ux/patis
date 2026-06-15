@@ -6,6 +6,16 @@ class VetPrescriptionMedicine {
 
   /// Doz / kullanım talimatı (örn. "2x1, 5 gün").
   final String dosage;
+
+  /// Cihazda saklamak (shared_preferences) için Map'e çevirir.
+  Map<String, dynamic> toJson() => {'name': name, 'dosage': dosage};
+
+  /// Saklanan Map'ten üretir.
+  factory VetPrescriptionMedicine.fromJson(Map<String, dynamic> json) =>
+      VetPrescriptionMedicine(
+        name: json['name'] as String? ?? '',
+        dosage: json['dosage'] as String? ?? '',
+      );
 }
 
 /// Bir hastaya yazılan reçete: tarih + ilaç listesi + opsiyonel not.
@@ -27,4 +37,21 @@ class VetPrescription {
 
   /// Ek açıklama / hekim notu (opsiyonel).
   final String? note;
+
+  /// Cihazda saklamak (shared_preferences) için Map'e çevirir.
+  Map<String, dynamic> toJson() => {
+        'dateLabel': dateLabel,
+        'medicines': medicines.map((m) => m.toJson()).toList(),
+        'note': note,
+      };
+
+  /// Saklanan Map'ten [VetPrescription] üretir.
+  factory VetPrescription.fromJson(Map<String, dynamic> json) => VetPrescription(
+        dateLabel: json['dateLabel'] as String? ?? '',
+        medicines: (json['medicines'] as List? ?? const [])
+            .map((e) =>
+                VetPrescriptionMedicine.fromJson(e as Map<String, dynamic>))
+            .toList(),
+        note: json['note'] as String?,
+      );
 }

@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import '../models/user_role.dart';
 import '../state/auth_store.dart';
 import '../theme/app_colors.dart';
-import 'main_scaffold.dart';
+import 'login_screen.dart';
 
 /// Kayıt oluşturma ekranı (uygulamanın açılış akışı).
 ///
@@ -60,17 +60,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
+    // Oturumu doldur. Ana ekrana geçişi auth gate otomatik yapar; bu ekran
+    // gate'in altında durduğu için elle yönlendirmeye gerek yok.
     context.read<AuthStore>().register(
           name: name,
           email: email,
           role: _role,
           businessName: _role.isBusiness ? business : null,
         );
-
-    // Kayıt ekranını geçmişten çıkararak ana ekrana geç (geri tuşuyla dönülmesin).
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const MainScaffold()),
-    );
   }
 
   void _showError(String message) {
@@ -195,11 +192,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            // Zaten hesabı olan için kısa yol (şimdilik doğrudan ana ekrana geçer).
+            // Zaten hesabı olan için giriş ekranına geç.
             Center(
               child: TextButton(
-                onPressed: () => Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(builder: (_) => const MainScaffold()),
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const LoginScreen()),
                 ),
                 child: const Text('Zaten hesabın var mı? Giriş yap'),
               ),

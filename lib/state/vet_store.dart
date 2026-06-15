@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/vet_appointment.dart';
 import '../models/vet_patient.dart';
@@ -8,8 +11,17 @@ import '../models/vet_prescription.dart';
 ///
 /// Randevular ve hastalar burada toplanır; veteriner ana ekranı, Randevular ve
 /// Hastalar ekranları aynı kaynaktan beslenir. Bir randevunun durumu değişince
-/// dinleyen tüm ekranlar güncellenir. Şimdilik bellekte; ileride Firebase.
+/// dinleyen tüm ekranlar güncellenir. Randevular `shared_preferences` ile
+/// kalıcıdır (durum değişiklikleri ve yeni randevular korunur); hastalar ve
+/// reçeteler şimdilik bellekte.
 class VetStore extends ChangeNotifier {
+  VetStore() {
+    _load();
+  }
+
+  static const _kAppointments = 'vet_appointments';
+  static const _kPrescriptions = 'vet_prescriptions';
+
   final List<VetAppointment> _appointments = _seedAppointments();
 
   /// Randevuları bugüne göreceli tarihlerle üretir; böylece "Bugün"/"Yarın"
@@ -21,6 +33,7 @@ class VetStore extends ChangeNotifier {
     return [
       VetAppointment(
         id: 'v1',
+        patientId: 'p1',
         petName: 'Boncuk',
         breed: 'Tekir',
         ownerName: 'Zeynep A.',
@@ -34,6 +47,7 @@ class VetStore extends ChangeNotifier {
       ),
       VetAppointment(
         id: 'v2',
+        patientId: 'p2',
         petName: 'Max',
         breed: 'Golden Retriever',
         ownerName: 'Can D.',
@@ -47,6 +61,7 @@ class VetStore extends ChangeNotifier {
       ),
       VetAppointment(
         id: 'v3',
+        patientId: 'p3',
         petName: 'Limon',
         breed: 'Muhabbet kuşu',
         ownerName: 'Elif T.',
@@ -60,6 +75,7 @@ class VetStore extends ChangeNotifier {
       ),
       VetAppointment(
         id: 'v4',
+        patientId: 'p4',
         petName: 'Karamel',
         breed: 'Pomeranian',
         ownerName: 'Derya K.',
@@ -73,6 +89,7 @@ class VetStore extends ChangeNotifier {
       ),
       VetAppointment(
         id: 'v5',
+        patientId: 'p5',
         petName: 'Zeytin',
         breed: 'British Shorthair',
         ownerName: 'Burak S.',
@@ -308,6 +325,7 @@ class VetStore extends ChangeNotifier {
     if (i == -1) return;
     _appointments[i] = _appointments[i].copyWith(status: status);
     notifyListeners();
+    _persist();
   }
 
   /// Yeni bir randevu ekler (hasta detayından "Randevu" ile oluşturulur).
@@ -315,6 +333,55 @@ class VetStore extends ChangeNotifier {
   void addAppointment(VetAppointment appointment) {
     _appointments.insert(0, appointment);
     notifyListeners();
+    _persist();
+  }
+
+  /// Kayıtlı randevuları ve reçeteleri diskten yükler (varsa varsayılanların
+  /// yerini alır).
+  Future<void> _load() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    final apptRaw = prefs.getString(_kAppointments);
+    if (apptRaw != null) {
+      final decoded = (jsonDecode(apptRaw) as List)
+          .map((e) => VetAppointment.fromJson(e as Map<String, dynamic>))
+          .toList();
+      _appointments
+        ..clear()
+        ..addAll(decoded);
+    }
+
+    final presRaw = prefs.getString(_kPrescriptions);
+    if (presRaw != null) {
+      final map = jsonDecode(presRaw) as Map<String, dynamic>;
+      _prescriptions.clear();
+      map.forEach((patientId, list) {
+        _prescriptions[patientId] = (list as List)
+            .map((e) => VetPrescription.fromJson(e as Map<String, dynamic>))
+            .toList();
+      });
+    }
+
+    notifyListeners();
+  }
+
+  /// Randevu listesini JSON olarak diske yazar.
+  Future<void> _persist() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      _kAppointments,
+      jsonEncode(_appointments.map((a) => a.toJson()).toList()),
+    );
+  }
+
+  /// Reçete map'ini (hasta kimliği → reçeteler) JSON olarak diske yazar.
+  Future<void> _persistPrescriptions() async {
+    final prefs = await SharedPreferences.getInstance();
+    final encodable = _prescriptions.map(
+      (patientId, list) =>
+          MapEntry(patientId, list.map((p) => p.toJson()).toList()),
+    );
+    await prefs.setString(_kPrescriptions, jsonEncode(encodable));
   }
 
   // ---- Reçeteler (hasta kimliğine göre) ----
@@ -328,5 +395,6 @@ class VetStore extends ChangeNotifier {
   void addPrescription(String patientId, VetPrescription prescription) {
     (_prescriptions[patientId] ??= []).insert(0, prescription);
     notifyListeners();
+    _persistPrescriptions();
   }
 }

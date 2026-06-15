@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../models/appointment.dart';
 import '../state/appointment_store.dart';
+import '../state/passport_store.dart';
 import '../theme/app_colors.dart';
 
 /// "Yeni randevu" oluşturma formu (alttan açılan panel).
@@ -43,9 +44,18 @@ class _NewAppointmentSheetState extends State<NewAppointmentSheet> {
   final _titleController = TextEditingController();
   final _placeController = TextEditingController();
 
-  // Form üzerinde o an seçili olan tür ve tarih/saat.
+  // Form üzerinde o an seçili olan tür, tarih/saat ve hayvan.
   AppointmentType _type = AppointmentType.veteriner;
   DateTime? _dateTime;
+
+  // Randevunun ait olacağı hayvan; varsayılan olarak aktif (seçili) hayvan.
+  late String _petId;
+
+  @override
+  void initState() {
+    super.initState();
+    _petId = context.read<PassportStore>().selectedId;
+  }
 
   @override
   void dispose() {
@@ -115,6 +125,7 @@ class _NewAppointmentSheetState extends State<NewAppointmentSheet> {
             place: place,
             dateLabel: _formatDate(_dateTime!),
             type: _type,
+            petId: _petId,
           ),
         );
     Navigator.of(context).pop(); // paneli kapat
@@ -175,6 +186,28 @@ class _NewAppointmentSheetState extends State<NewAppointmentSheet> {
             },
           ),
           const SizedBox(height: 20),
+          // Randevunun hangi dosta ait olduğu (çoklu hayvan).
+          Text(
+            'Hangi dost?',
+            style: theme.textTheme.labelLarge?.copyWith(
+              color: AppColors.text.withValues(alpha: 0.7),
+            ),
+          ),
+          const SizedBox(height: 8),
+          DropdownButtonFormField<String>(
+            initialValue: _petId,
+            decoration: const InputDecoration(
+              prefixIcon: Icon(Icons.pets),
+            ),
+            items: [
+              for (final p in context.read<PassportStore>().pets)
+                DropdownMenuItem(value: p.id, child: Text(p.pet.name)),
+            ],
+            onChanged: (value) {
+              if (value != null) setState(() => _petId = value);
+            },
+          ),
+          const SizedBox(height: 16),
           TextField(
             controller: _titleController,
             decoration: const InputDecoration(

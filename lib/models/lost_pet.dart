@@ -66,4 +66,33 @@ class LostPet {
 
   /// Ödül var mı? `true` ise kartta "Ödüllü" rozeti gösterilir.
   final bool hasReward;
+
+  /// Cihazda saklamak (shared_preferences) için Map'e çevirir. Tür ve durum
+  /// enum adı olarak yazılır.
+  Map<String, dynamic> toJson() => {
+        'name': name,
+        'species': species.name,
+        'status': status.name,
+        'location': location,
+        'dateLabel': dateLabel,
+        'description': description,
+        'hasReward': hasReward,
+      };
+
+  /// Saklanan Map'ten [LostPet] üretir. Bilinmeyen tür/durum varsayılana düşer.
+  factory LostPet.fromJson(Map<String, dynamic> json) => LostPet(
+        name: json['name'] as String? ?? '',
+        species: AdoptionSpecies.values.firstWhere(
+          (s) => s.name == json['species'],
+          orElse: () => AdoptionSpecies.kedi,
+        ),
+        status: LostPetStatus.values.firstWhere(
+          (s) => s.name == json['status'],
+          orElse: () => LostPetStatus.kayip,
+        ),
+        location: json['location'] as String? ?? '',
+        dateLabel: json['dateLabel'] as String? ?? '',
+        description: json['description'] as String? ?? '',
+        hasReward: json['hasReward'] as bool? ?? false,
+      );
 }
