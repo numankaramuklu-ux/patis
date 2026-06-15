@@ -13,4 +13,16 @@ class WeightEntry {
 
   /// Grafiğin altında görünecek kısa tarih etiketi (örn. "Oca", "Şub").
   final String dateLabel;
+
+  /// Cihazda saklamak (shared_preferences) için Map'e çevirir.
+  Map<String, dynamic> toJson() => {
+        'kg': kg,
+        'dateLabel': dateLabel,
+      };
+
+  /// Saklanan Map'ten [WeightEntry] üretir.
+  factory WeightEntry.fromJson(Map<String, dynamic> json) => WeightEntry(
+        kg: (json['kg'] as num?)?.toDouble() ?? 0,
+        dateLabel: json['dateLabel'] as String? ?? '',
+      );
 }

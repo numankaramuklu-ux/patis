@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../models/vet_patient.dart';
+import '../models/vet_prescription.dart';
+import '../state/vet_store.dart';
 import '../theme/app_colors.dart';
+import '../widgets/new_prescription_sheet.dart';
+import '../widgets/new_vet_appointment_sheet.dart';
 
 /// Tek bir hastanın detay ekranı.
 ///
@@ -19,6 +24,8 @@ class VetPatientDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    // Depoyu dinle: yeni reçete eklenince bu ekran kendini günceller.
+    final prescriptions = context.watch<VetStore>().prescriptionsFor(patient.id);
     return Scaffold(
       appBar: AppBar(title: Text(patient.petName)),
       body: SafeArea(
@@ -174,6 +181,18 @@ class VetPatientDetailScreen extends StatelessWidget {
               _TreatmentRow(treatment: t),
               const SizedBox(height: 8),
             ],
+
+            // ---- Reçeteler (bu hastaya yazılanlar) ----
+            const SizedBox(height: 24),
+            _SectionTitle('Reçeteler'),
+            const SizedBox(height: 10),
+            if (prescriptions.isEmpty)
+              _EmptyHint('Henüz reçete yok')
+            else
+              for (final p in prescriptions) ...[
+                _PrescriptionCard(prescription: p),
+                const SizedBox(height: 8),
+              ],
             const SizedBox(height: 12),
 
             // ---- Aksiyonlar ----
@@ -182,7 +201,7 @@ class VetPatientDetailScreen extends StatelessWidget {
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: () =>
-                        _snack(context, '${patient.petName} için reçete yaz'),
+                        NewPrescriptionSheet.show(context, patient),
                     icon: const Icon(Icons.receipt_long_outlined),
                     label: const Text('Reçete'),
                     style: OutlinedButton.styleFrom(
@@ -196,7 +215,7 @@ class VetPatientDetailScreen extends StatelessWidget {
                 Expanded(
                   child: FilledButton.icon(
                     onPressed: () =>
-                        _snack(context, '${patient.petName} için randevu oluştur'),
+                        NewVetAppointmentSheet.show(context, patient),
                     icon: const Icon(Icons.add),
                     label: const Text('Randevu'),
                     style: FilledButton.styleFrom(
@@ -477,6 +496,107 @@ class _TreatmentRow extends StatelessWidget {
               ],
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Reçeteler bölümündeki tek bir reçete kartı (tarih + ilaçlar + not).
+class _PrescriptionCard extends StatelessWidget {
+  const _PrescriptionCard({required this.prescription});
+
+  final VetPrescription prescription;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.text.withValues(alpha: 0.08)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Başlık: reçete ikonu + tarih.
+          Row(
+            children: [
+              const Icon(Icons.receipt_long_outlined,
+                  color: AppColors.forest, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                'Reçete',
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const Spacer(),
+              Text(
+                prescription.dateLabel,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: AppColors.text.withValues(alpha: 0.5),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          // İlaç satırları.
+          for (final m in prescription.medicines)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 6, right: 8),
+                    child: Container(
+                      width: 6,
+                      height: 6,
+                      decoration: const BoxDecoration(
+                        color: AppColors.forest,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Text.rich(
+                      TextSpan(
+                        children: [
+                          TextSpan(
+                            text: m.name,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          if (m.dosage.isNotEmpty)
+                            TextSpan(
+                              text: '  •  ${m.dosage}',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: AppColors.text.withValues(alpha: 0.6),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          // Not (varsa).
+          if (prescription.note != null) ...[
+            const SizedBox(height: 4),
+            Text(
+              prescription.note!,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: AppColors.text.withValues(alpha: 0.6),
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ],
         ],
       ),
     );

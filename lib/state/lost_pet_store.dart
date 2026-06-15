@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/adoption_listing.dart';
 import '../models/lost_pet.dart';
@@ -6,9 +9,15 @@ import '../models/lost_pet.dart';
 /// Kayıp/Bulundu ilanlarının tutulduğu "depo" (store).
 ///
 /// `AppointmentStore` ile aynı mantık: veri değişince `notifyListeners()`
-/// çağırır, dinleyen ekranlar otomatik yeniden çizilir. Şimdilik veriler
-/// bellekte (uygulama kapanınca sıfırlanır); ileride Firebase'e bağlanacak.
+/// çağırır, dinleyen ekranlar otomatik yeniden çizilir. İlanlar
+/// `shared_preferences` ile kalıcıdır; ileride Firebase'e bağlanacak.
 class LostPetStore extends ChangeNotifier {
+  LostPetStore() {
+    _load();
+  }
+
+  static const _kLostPets = 'lost_pets';
+
   // Başlangıç (mock) ilanları.
   final List<LostPet> _lostPets = [
     const LostPet(
@@ -46,5 +55,29 @@ class LostPetStore extends ChangeNotifier {
   void add(LostPet lostPet) {
     _lostPets.insert(0, lostPet);
     notifyListeners();
+    _persist();
+  }
+
+  /// Kayıtlı ilanları diskten yükler (varsa varsayılanların yerini alır).
+  Future<void> _load() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_kLostPets);
+    if (raw == null) return;
+    final decoded = (jsonDecode(raw) as List)
+        .map((e) => LostPet.fromJson(e as Map<String, dynamic>))
+        .toList();
+    _lostPets
+      ..clear()
+      ..addAll(decoded);
+    notifyListeners();
+  }
+
+  /// İlan listesini JSON olarak diske yazar.
+  Future<void> _persist() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      _kLostPets,
+      jsonEncode(_lostPets.map((p) => p.toJson()).toList()),
+    );
   }
 }

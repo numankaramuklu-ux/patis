@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/salon_appointment.dart';
 import '../models/salon_client.dart';
@@ -8,8 +11,15 @@ import '../models/salon_client.dart';
 /// Randevular ve müşteriler burada toplanır; salon ana ekranı, Randevular ve
 /// Müşteriler ekranları aynı kaynaktan beslendiği için veriler tutarlı kalır.
 /// Bir randevunun durumu değişince (onay/tamamla/iptal) `notifyListeners()`
-/// ile dinleyen tüm ekranlar güncellenir. Şimdilik bellekte; ileride Firebase.
+/// ile dinleyen tüm ekranlar güncellenir. Randevular `shared_preferences` ile
+/// kalıcıdır (durum değişiklikleri korunur); müşteriler şimdilik bellekte.
 class SalonStore extends ChangeNotifier {
+  SalonStore() {
+    _load();
+  }
+
+  static const _kAppointments = 'salon_appointments';
+
   final List<SalonAppointment> _appointments = _seedAppointments();
 
   /// Randevuları bugüne göreceli tarihlerle üretir; böylece "Bugün"/"Yarın"
@@ -22,6 +32,7 @@ class SalonStore extends ChangeNotifier {
     return [
       SalonAppointment(
         id: 'a1',
+        clientId: 'c1',
         petName: 'Pamuk',
         breed: 'British Shorthair',
         ownerName: 'Ayşe Y.',
@@ -46,6 +57,7 @@ class SalonStore extends ChangeNotifier {
       ),
       SalonAppointment(
         id: 'a3',
+        clientId: 'c2',
         petName: 'Lokum',
         breed: 'Maltese',
         ownerName: 'Selin A.',
@@ -70,6 +82,7 @@ class SalonStore extends ChangeNotifier {
       ),
       SalonAppointment(
         id: 'a5',
+        clientId: 'c4',
         petName: 'Şila',
         breed: 'Poodle',
         ownerName: 'Gizem D.',
@@ -82,6 +95,7 @@ class SalonStore extends ChangeNotifier {
       ),
       SalonAppointment(
         id: 'a6',
+        clientId: 'c3',
         petName: 'Duman',
         breed: 'Pomeranian',
         ownerName: 'Onur B.',
@@ -95,6 +109,7 @@ class SalonStore extends ChangeNotifier {
       // Takvimi doldurmak için ileri günlere yayılmış randevular.
       SalonAppointment(
         id: 'a7',
+        clientId: 'c5',
         petName: 'Zeytin',
         breed: 'Golden Retriever',
         ownerName: 'Kaan M.',
@@ -261,5 +276,37 @@ class SalonStore extends ChangeNotifier {
     if (i == -1) return;
     _appointments[i] = _appointments[i].copyWith(status: status);
     notifyListeners();
+    _persist();
+  }
+
+  /// Yeni bir randevu ekler. Listenin sonuna eklenir; güne göre gruplama gün
+  /// etiketinden yapıldığı için doğru güne otomatik düşer.
+  void addAppointment(SalonAppointment appointment) {
+    _appointments.add(appointment);
+    notifyListeners();
+    _persist();
+  }
+
+  /// Kayıtlı randevuları diskten yükler (varsa varsayılan seed'in yerini alır).
+  Future<void> _load() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_kAppointments);
+    if (raw == null) return;
+    final decoded = (jsonDecode(raw) as List)
+        .map((e) => SalonAppointment.fromJson(e as Map<String, dynamic>))
+        .toList();
+    _appointments
+      ..clear()
+      ..addAll(decoded);
+    notifyListeners();
+  }
+
+  /// Randevu listesini JSON olarak diske yazar.
+  Future<void> _persist() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      _kAppointments,
+      jsonEncode(_appointments.map((a) => a.toJson()).toList()),
+    );
   }
 }

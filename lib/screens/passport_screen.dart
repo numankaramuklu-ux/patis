@@ -6,8 +6,10 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../models/pet.dart';
+import '../models/pet_profile.dart';
 import '../state/passport_store.dart';
 import '../theme/app_colors.dart';
+import '../widgets/edit_pet_sheet.dart';
 import '../widgets/health_record_card.dart';
 import '../widgets/new_health_record_sheet.dart';
 import '../widgets/new_vaccination_sheet.dart';
@@ -25,19 +27,6 @@ import '../widgets/weight_chart_card.dart';
 /// açar.
 class PassportScreen extends StatelessWidget {
   const PassportScreen({super.key});
-
-  // Tek hayvan olduğu için profil sabit; diğer veriler depodan gelir.
-  static const _pet = Pet(
-    name: 'Pamuk',
-    breed: 'British Shorthair',
-    ageLabel: '2 yaşında',
-    species: 'Kedi',
-    gender: 'Dişi',
-    birthDateLabel: '14 Mart 2024',
-    colorLabel: 'Beyaz',
-    microchip: 'TR 985 112 003 456 789',
-    registrationNo: 'PT-2024-0142',
-  );
 
   /// Galeriden bir fotoğraf seçtirir ve depoya kaydeder.
   Future<void> _pickPhoto(BuildContext context) async {
@@ -57,6 +46,7 @@ class PassportScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     // Depoyu DİNLE: yeni kayıt eklenince ekran kendini yeniden çizer.
     final store = context.watch<PassportStore>();
+    final pet = store.pet;
     final lastWeight =
         store.weights.isNotEmpty ? store.weights.last.kg : null;
     // Sonraki dozu olan ilk aşı (hatırlatıcı banner için).
@@ -69,13 +59,21 @@ class PassportScreen extends StatelessWidget {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
           children: [
+            // Çoklu hayvan seçici: dostlar arasında geçiş + yeni ekleme.
+            _PetSelector(
+              pets: store.pets,
+              selectedId: store.selectedId,
+              onSelect: (id) => store.selectPet(id),
+              onAdd: () => EditPetSheet.show(context, isNew: true),
+            ),
+            const SizedBox(height: 16),
             _PassportHeader(
-              pet: _pet,
+              pet: pet,
               photoPath: store.photoPath,
               onPickPhoto: () => _pickPhoto(context),
               onShare: () => PassportShareSheet.show(
                 context,
-                pet: _pet,
+                pet: pet,
                 vaccinations: store.vaccinations,
               ),
             ),
@@ -90,7 +88,7 @@ class PassportScreen extends StatelessWidget {
             const SizedBox(height: 16),
 
             // ---- Künye ----
-            _IdentityCard(pet: _pet),
+            _IdentityCard(pet: pet),
             const SizedBox(height: 28),
 
             // ---- Aşılar ----
@@ -240,6 +238,163 @@ class _SectionHeader extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Dostlar arasında geçiş yapılan yatay seçici + "yeni dost" butonu.
+///
+/// Her hayvan bir avatar (fotoğrafı varsa onunla, yoksa ikonla) ve adıyla
+/// gösterilir; seçili olan orman yeşili çerçeveyle vurgulanır.
+class _PetSelector extends StatelessWidget {
+  const _PetSelector({
+    required this.pets,
+    required this.selectedId,
+    required this.onSelect,
+    required this.onAdd,
+  });
+
+  final List<PetProfile> pets;
+  final String selectedId;
+  final ValueChanged<String> onSelect;
+  final VoidCallback onAdd;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 92,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: pets.length + 1, // son öğe "ekle" butonu
+        separatorBuilder: (_, _) => const SizedBox(width: 12),
+        itemBuilder: (context, i) {
+          if (i == pets.length) return _AddPetButton(onTap: onAdd);
+          final profile = pets[i];
+          return _PetAvatar(
+            profile: profile,
+            selected: profile.id == selectedId,
+            onTap: () => onSelect(profile.id),
+          );
+        },
+      ),
+    );
+  }
+}
+
+/// Seçicideki tek bir hayvan avatarı.
+class _PetAvatar extends StatelessWidget {
+  const _PetAvatar({
+    required this.profile,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final PetProfile profile;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final path = profile.photoPath;
+    return GestureDetector(
+      onTap: onTap,
+      child: SizedBox(
+        width: 64,
+        child: Column(
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.forest.withValues(alpha: 0.1),
+                border: Border.all(
+                  color: selected
+                      ? AppColors.forest
+                      : AppColors.text.withValues(alpha: 0.12),
+                  width: selected ? 2.5 : 1,
+                ),
+                image: path != null
+                    ? DecorationImage(
+                        image: FileImage(File(path)), fit: BoxFit.cover)
+                    : null,
+              ),
+              child: path == null
+                  ? const Icon(Icons.pets, color: AppColors.forest)
+                  : null,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              profile.pet.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
+                color: selected
+                    ? AppColors.forest
+                    : AppColors.text.withValues(alpha: 0.7),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Seçicinin sonundaki "yeni dost ekle" butonu.
+class _AddPetButton extends StatelessWidget {
+  const _AddPetButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return GestureDetector(
+      onTap: onTap,
+      child: SizedBox(
+        width: 64,
+        child: Column(
+          children: [
+            DottedCircle(
+              child: const Icon(Icons.add, color: AppColors.forest),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Ekle',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: AppColors.text.withValues(alpha: 0.7),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// "Ekle" butonu için kesik çizgili daire görünümü (basit, dolgulu çember).
+class DottedCircle extends StatelessWidget {
+  const DottedCircle({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 56,
+      height: 56,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: AppColors.forest.withValues(alpha: 0.06),
+        border: Border.all(
+          color: AppColors.forest.withValues(alpha: 0.4),
+        ),
+      ),
+      child: child,
     );
   }
 }

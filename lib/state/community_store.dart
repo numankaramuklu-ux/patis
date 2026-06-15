@@ -1,13 +1,22 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/community_post.dart';
 
 /// Topluluk akışındaki gönderilerin tutulduğu "depo" (store).
 ///
 /// Diğer store'larla aynı mantık (ChangeNotifier): veri değişince
-/// `notifyListeners()` çağırır, dinleyen ekran yeniden çizilir. Şimdilik veriler
-/// bellekte; ileride Firebase'e bağlanacak.
+/// `notifyListeners()` çağırır, dinleyen ekran yeniden çizilir. Gönderiler,
+/// beğeniler ve yorumlar `shared_preferences` ile kalıcıdır; ileride Firebase'e.
 class CommunityStore extends ChangeNotifier {
+  CommunityStore() {
+    _load();
+  }
+
+  static const _kPosts = 'community_posts';
+
   // Başlangıç (mock) gönderileri.
   final List<CommunityPost> _posts = [
     CommunityPost(
@@ -62,17 +71,43 @@ class CommunityStore extends ChangeNotifier {
     post.liked = !post.liked;
     post.likeCount += post.liked ? 1 : -1;
     notifyListeners();
+    _persist();
   }
 
   /// Akışın en üstüne yeni bir gönderi ekler.
   void add(CommunityPost post) {
     _posts.insert(0, post);
     notifyListeners();
+    _persist();
   }
 
   /// Bir gönderiye yeni yorum ekler ve sayacı günceller.
   void addComment(CommunityPost post, String text) {
     post.comments.add(Comment(author: 'Sen', text: text));
     notifyListeners();
+    _persist();
+  }
+
+  /// Kayıtlı gönderileri diskten yükler (varsa varsayılanların yerini alır).
+  Future<void> _load() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_kPosts);
+    if (raw == null) return;
+    final decoded = (jsonDecode(raw) as List)
+        .map((e) => CommunityPost.fromJson(e as Map<String, dynamic>))
+        .toList();
+    _posts
+      ..clear()
+      ..addAll(decoded);
+    notifyListeners();
+  }
+
+  /// Gönderi listesini (beğeni + yorumlarıyla) JSON olarak diske yazar.
+  Future<void> _persist() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      _kPosts,
+      jsonEncode(_posts.map((p) => p.toJson()).toList()),
+    );
   }
 }

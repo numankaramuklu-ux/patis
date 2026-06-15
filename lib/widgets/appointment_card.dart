@@ -7,9 +7,13 @@ import '../theme/app_colors.dart';
 ///
 /// Veriyi dışarıdan [Appointment] olarak alır.
 class AppointmentCard extends StatelessWidget {
-  const AppointmentCard({super.key, required this.appointment});
+  const AppointmentCard({super.key, required this.appointment, this.petName});
 
   final Appointment appointment;
+
+  /// Randevunun ait olduğu hayvanın adı. Verilirse başlığın altında küçük bir
+  /// rozet olarak gösterilir (çoklu hayvan desteği).
+  final String? petName;
 
   @override
   Widget build(BuildContext context) {
@@ -48,6 +52,32 @@ class AppointmentCard extends StatelessWidget {
                     color: AppColors.text.withValues(alpha: 0.6),
                   ),
                 ),
+                // Hangi dosta ait olduğunu gösteren rozet.
+                if (petName != null && petName!.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: accent.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.pets, size: 12, color: accent),
+                        const SizedBox(width: 4),
+                        Text(
+                          petName!,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: accent,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

@@ -45,6 +45,10 @@ dependencies:
   # Galeriden / kameradan hayvanın profil fotoğrafını seçmek için.
   image_picker: ^1.1.2
 
+  # Oturum bilgisini (ad/e-posta/rol) cihazda saklayıp uygulama yeniden
+  # açıldığında geri yüklemek için.
+  shared_preferences: ^2.3.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

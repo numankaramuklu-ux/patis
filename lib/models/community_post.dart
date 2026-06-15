@@ -52,6 +52,36 @@ class CommunityPost {
 
   /// Avatarda gösterilecek baş harf.
   String get initial => author.characters.first;
+
+  /// Cihazda saklamak (shared_preferences) için Map'e çevirir. Renk ARGB tam
+  /// sayı olarak yazılır.
+  Map<String, dynamic> toJson() => {
+        'author': author,
+        'timeAgo': timeAgo,
+        'content': content,
+        'avatarColor': avatarColor.toARGB32(),
+        'petTag': petTag,
+        'likeCount': likeCount,
+        'liked': liked,
+        'comments': comments.map((c) => c.toJson()).toList(),
+      };
+
+  /// Saklanan Map'ten [CommunityPost] üretir.
+  factory CommunityPost.fromJson(Map<String, dynamic> json) => CommunityPost(
+        author: json['author'] as String? ?? '',
+        timeAgo: json['timeAgo'] as String? ?? '',
+        content: json['content'] as String? ?? '',
+        avatarColor: Color(
+          (json['avatarColor'] as num?)?.toInt() ??
+              communityAvatarColors[0].toARGB32(),
+        ),
+        petTag: json['petTag'] as String?,
+        likeCount: (json['likeCount'] as num?)?.toInt() ?? 0,
+        liked: json['liked'] as bool? ?? false,
+        comments: (json['comments'] as List? ?? const [])
+            .map((e) => Comment.fromJson(e as Map<String, dynamic>))
+            .toList(),
+      );
 }
 
 /// Bir gönderiye yapılan tek bir yorum.
@@ -73,6 +103,20 @@ class Comment {
 
   /// Avatarda gösterilecek baş harf.
   String get initial => author.characters.first;
+
+  /// Cihazda saklamak için Map'e çevirir.
+  Map<String, dynamic> toJson() => {
+        'author': author,
+        'text': text,
+        'timeAgo': timeAgo,
+      };
+
+  /// Saklanan Map'ten [Comment] üretir.
+  factory Comment.fromJson(Map<String, dynamic> json) => Comment(
+        author: json['author'] as String? ?? '',
+        text: json['text'] as String? ?? '',
+        timeAgo: json['timeAgo'] as String? ?? 'Az önce',
+      );
 }
 
 /// Yeni gönderi oluştururken avatar rengini sırayla seçmek için kullanılan
