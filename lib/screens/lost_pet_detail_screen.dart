@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../models/lost_pet.dart';
 import '../theme/app_colors.dart';
@@ -7,8 +8,8 @@ import '../theme/app_colors.dart';
 ///
 /// Kayıp listesindeki bir karta dokununca açılır. Durum rengine göre kapak
 /// banner'ı, ad, durum/ödül rozetleri, tür/konum/tarih bilgileri, açıklama ve
-/// iletişim aksiyonları gösterir. Veriler şimdilik mock; iletişim/harita
-/// aksiyonları ileride gerçek veriyle bağlanacak.
+/// iletişim aksiyonları gösterir. İletişim (ara/mesaj) ve harita aksiyonları
+/// `url_launcher` ile dış uygulamada açılır.
 class LostPetDetailScreen extends StatelessWidget {
   const LostPetDetailScreen({super.key, required this.lostPet});
 
@@ -16,6 +17,38 @@ class LostPetDetailScreen extends StatelessWidget {
 
   void _snack(BuildContext context, String msg) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+  }
+
+  /// İlan sahibiyle iletişim: telefon varsa ara/mesaj seçeneklerini sunan alt
+  /// paneli açar, yoksa bilgilendirir.
+  void _openContact(BuildContext context) {
+    final phone = lostPet.phone;
+    if (phone == null || phone.isEmpty) {
+      _snack(context, 'Bu ilan için iletişim bilgisi yok');
+      return;
+    }
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: AppColors.cream,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (_) => _ContactSheet(lostPet: lostPet),
+    );
+  }
+
+  /// Konumu dış harita uygulamasında (veya tarayıcıda) arar.
+  Future<void> _openMap(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final query = Uri.encodeComponent(lostPet.location);
+    final uri =
+        Uri.parse('https://www.google.com/maps/search/?api=1&query=$query');
+    final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (!ok) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Harita açılamadı')),
+      );
+    }
   }
 
   @override
@@ -110,10 +143,7 @@ class LostPetDetailScreen extends StatelessWidget {
                   SizedBox(
                     width: double.infinity,
                     child: FilledButton.icon(
-                      onPressed: () => _snack(
-                        context,
-                        'İletişim bilgileri yakında 🐾',
-                      ),
+                      onPressed: () => _openContact(context),
                       icon: const Icon(Icons.chat_bubble_outline),
                       label: Text(isLost ? 'İlan sahibine ulaş' : 'Bulan kişiye ulaş'),
                       style: FilledButton.styleFrom(
@@ -127,8 +157,7 @@ class LostPetDetailScreen extends StatelessWidget {
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton.icon(
-                      onPressed: () =>
-                          _snack(context, 'Harita görünümü yakında 🗺️'),
+                      onPressed: () => _openMap(context),
                       icon: const Icon(Icons.map_outlined),
                       label: const Text('Haritada gör'),
                       style: OutlinedButton.styleFrom(
@@ -290,6 +319,111 @@ class _RewardBadge extends StatelessWidget {
               color: AppColors.gold,
               fontWeight: FontWeight.w600,
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// İletişim alt paneli: ilan sahibinin adı/telefonu + Ara ve Mesaj butonları.
+class _ContactSheet extends StatelessWidget {
+  const _ContactSheet({required this.lostPet});
+
+  final LostPet lostPet;
+
+  Future<void> _launch(BuildContext context, Uri uri) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+    final ok = await launchUrl(uri);
+    if (ok) {
+      navigator.pop();
+    } else {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('İşlem başlatılamadı')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final accent = lostPet.status.color;
+    final phone = lostPet.phone ?? '';
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 28),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.text.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          Text('İletişim', style: theme.textTheme.titleLarge),
+          const SizedBox(height: 12),
+          if (lostPet.contactName != null) ...[
+            Row(
+              children: [
+                const Icon(Icons.person_outline,
+                    size: 20, color: AppColors.forest),
+                const SizedBox(width: 10),
+                Text(lostPet.contactName!, style: theme.textTheme.bodyLarge),
+              ],
+            ),
+            const SizedBox(height: 8),
+          ],
+          Row(
+            children: [
+              const Icon(Icons.phone_outlined,
+                  size: 20, color: AppColors.forest),
+              const SizedBox(width: 10),
+              Text(
+                phone,
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              Expanded(
+                child: FilledButton.icon(
+                  onPressed: () =>
+                      _launch(context, Uri(scheme: 'tel', path: phone)),
+                  icon: const Icon(Icons.call),
+                  label: const Text('Ara'),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: accent,
+                    foregroundColor: AppColors.cream,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () =>
+                      _launch(context, Uri(scheme: 'sms', path: phone)),
+                  icon: const Icon(Icons.message_outlined),
+                  label: const Text('Mesaj'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: accent,
+                    side: BorderSide(color: accent.withValues(alpha: 0.5)),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),

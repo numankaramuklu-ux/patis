@@ -28,6 +28,8 @@ class LostPetStore extends ChangeNotifier {
       dateLabel: '5 Haziran',
       description: 'Gri tekir, kırmızı tasmalı. Çekingen, korkunca kaçar.',
       hasReward: true,
+      contactName: 'Ayşe Yılmaz',
+      phone: '05321112233',
     ),
     const LostPet(
       name: 'Çakıl',
@@ -36,6 +38,8 @@ class LostPetStore extends ChangeNotifier {
       location: 'Karşıyaka, İzmir',
       dateLabel: '3 Haziran',
       description: 'Kahverengi, orta boy. Sağ kulağında küçük bir çentik var.',
+      contactName: 'Mert Kaya',
+      phone: '05334445566',
     ),
     const LostPet(
       name: 'İsimsiz (siyah kedi)',
@@ -44,6 +48,8 @@ class LostPetStore extends ChangeNotifier {
       location: 'Çankaya, Ankara',
       dateLabel: '6 Haziran',
       description: 'Tasmasız, sağlıklı görünüyor. Geçici olarak bende kalıyor.',
+      contactName: 'Selin Acar',
+      phone: '05357778899',
     ),
   ];
 

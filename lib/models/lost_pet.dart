@@ -43,6 +43,8 @@ class LostPet {
     required this.dateLabel,
     required this.description,
     this.hasReward = false,
+    this.contactName,
+    this.phone,
   });
 
   /// Hayvanın adı; bilinmiyorsa "İsimsiz" gibi bir metin verilir.
@@ -67,6 +69,12 @@ class LostPet {
   /// Ödül var mı? `true` ise kartta "Ödüllü" rozeti gösterilir.
   final bool hasReward;
 
+  /// İlan sahibinin / bulan kişinin adı (iletişim için, isteğe bağlı).
+  final String? contactName;
+
+  /// İletişim telefonu (arama/mesaj için). Yoksa iletişim aksiyonu kapalıdır.
+  final String? phone;
+
   /// Cihazda saklamak (shared_preferences) için Map'e çevirir. Tür ve durum
   /// enum adı olarak yazılır.
   Map<String, dynamic> toJson() => {
@@ -77,6 +85,8 @@ class LostPet {
         'dateLabel': dateLabel,
         'description': description,
         'hasReward': hasReward,
+        'contactName': contactName,
+        'phone': phone,
       };
 
   /// Saklanan Map'ten [LostPet] üretir. Bilinmeyen tür/durum varsayılana düşer.
@@ -94,5 +104,7 @@ class LostPet {
         dateLabel: json['dateLabel'] as String? ?? '',
         description: json['description'] as String? ?? '',
         hasReward: json['hasReward'] as bool? ?? false,
+        contactName: json['contactName'] as String?,
+        phone: json['phone'] as String?,
       );
 }
