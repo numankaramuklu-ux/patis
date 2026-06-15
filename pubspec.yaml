@@ -49,6 +49,10 @@ dependencies:
   # açıldığında geri yüklemek için.
   shared_preferences: ^2.3.2
 
+  # Kayıp ilanlarında telefonla arama/mesaj ve haritada konum açmak için
+  # (tel:, sms: ve harita bağlantılarını dış uygulamada açar).
+  url_launcher: ^6.3.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

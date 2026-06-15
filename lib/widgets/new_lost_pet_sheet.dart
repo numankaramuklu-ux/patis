@@ -41,6 +41,8 @@ class _NewLostPetSheetState extends State<NewLostPetSheet> {
   final _nameController = TextEditingController();
   final _locationController = TextEditingController();
   final _descriptionController = TextEditingController();
+  final _contactController = TextEditingController();
+  final _phoneController = TextEditingController();
 
   // Form üzerinde o an seçili değerler.
   LostPetStatus _status = LostPetStatus.kayip;
@@ -53,6 +55,8 @@ class _NewLostPetSheetState extends State<NewLostPetSheet> {
     _nameController.dispose();
     _locationController.dispose();
     _descriptionController.dispose();
+    _contactController.dispose();
+    _phoneController.dispose();
     super.dispose();
   }
 
@@ -78,11 +82,19 @@ class _NewLostPetSheetState extends State<NewLostPetSheet> {
     final name = _nameController.text.trim();
     final location = _locationController.text.trim();
     final description = _descriptionController.text.trim();
+    final contact = _contactController.text.trim();
+    final phone = _phoneController.text.trim();
 
-    // Yer, açıklama ve tarih zorunlu; ad boş bırakılabilir ("İsimsiz" olur).
+    // Yer, açıklama, tarih ve telefon zorunlu; ad boş bırakılabilir ("İsimsiz").
     if (location.isEmpty || description.isEmpty || _date == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Lütfen yer, açıklama ve tarihi doldur')),
+      );
+      return;
+    }
+    if (phone.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('İletişim için bir telefon numarası gir')),
       );
       return;
     }
@@ -96,6 +108,8 @@ class _NewLostPetSheetState extends State<NewLostPetSheet> {
             dateLabel: _formatDate(_date!),
             description: description,
             hasReward: _hasReward,
+            contactName: contact.isEmpty ? null : contact,
+            phone: phone,
           ),
         );
     Navigator.of(context).pop(); // paneli kapat
@@ -191,6 +205,27 @@ class _NewLostPetSheetState extends State<NewLostPetSheet> {
                 labelText: 'Açıklama',
                 hintText: 'Renk, tasma, davranış gibi ayırt edici özellikler',
                 alignLabelWithHint: true,
+              ),
+            ),
+            const SizedBox(height: 16),
+            // İletişim: ad (isteğe bağlı) + telefon (zorunlu).
+            TextField(
+              controller: _contactController,
+              textCapitalization: TextCapitalization.words,
+              decoration: const InputDecoration(
+                labelText: 'İletişim adı (isteğe bağlı)',
+                hintText: 'Örn. Ayşe Yılmaz',
+                prefixIcon: Icon(Icons.person_outline),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _phoneController,
+              keyboardType: TextInputType.phone,
+              decoration: const InputDecoration(
+                labelText: 'Telefon',
+                hintText: 'Örn. 0532 111 22 33',
+                prefixIcon: Icon(Icons.phone_outlined),
               ),
             ),
             const SizedBox(height: 8),
