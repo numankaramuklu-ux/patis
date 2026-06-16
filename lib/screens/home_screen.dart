@@ -23,6 +23,7 @@ import 'notifications_screen.dart';
 import 'pet_sitter_screen.dart';
 import 'profile_screen.dart';
 import 'salon_services_screen.dart';
+import 'vet_prescriptions_screen.dart';
 import 'vet_vaccine_schedule_screen.dart';
 
 /// Uygulamanın açılış (Ana Sayfa) ekranı.
@@ -337,8 +338,11 @@ class HomeScreen extends StatelessWidget {
             : Icons.price_change_outlined,
         label: isVet ? 'Reçeteler' : 'Fiyat listesi',
         color: AppColors.gold,
-        // "Fiyat listesi" de aynı hizmet ekranını açar (fiyatlar orada).
-        onTap: isVet ? () => _soon(context) : () => _openSalonServices(context),
+        // Veteriner: klinik geneli reçeteler. Kuaför: fiyat listesi (aynı
+        // hizmet ekranını açar, fiyatlar orada).
+        onTap: isVet
+            ? () => _openPrescriptions(context)
+            : () => _openSalonServices(context),
       ),
       PetService(
         icon: Icons.groups_outlined,
@@ -382,10 +386,10 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  /// Henüz hazır olmayan işletme ekranları için kısa "yakında" geri bildirimi.
-  void _soon(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Bu özellik yakında 🐾')),
+  /// Veterinerin klinik geneli reçeteler ekranını açar.
+  void _openPrescriptions(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const VetPrescriptionsScreen()),
     );
   }
 }

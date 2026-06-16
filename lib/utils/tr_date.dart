@@ -26,11 +26,16 @@ String formatTrMonthYear(DateTime dt) => '${_months[dt.month - 1]} ${dt.year}';
 String trMonthShort(DateTime dt) => _monthsShort[dt.month - 1];
 
 /// "10 Ağustos", "2 Haz 2027" gibi Türkçe tarih etiketlerini [DateTime]'a
-/// çevirir. Tam ("Ağustos") ve kısa ("Ağu") ay adlarını anlar. Yıl
-/// belirtilmemişse bugünden itibaren ilk geçiş yılını seçer (gün/ay geçmişte
-/// kalmışsa gelecek yıl) — böylece "yaklaşan" sıralaması doğru çıkar.
+/// çevirir. Tam ("Ağustos") ve kısa ("Ağu") ay adlarını anlar.
+///
+/// Yıl belirtilmemişse [preferPast]'e göre yıl seçilir:
+/// - false (varsayılan): bugünden itibaren ilk geçiş (gelecekteki tarih) —
+///   aşı gibi "yaklaşan" tarihler için.
+/// - true: bugünden önceki en yakın geçiş (geçmişteki tarih) — reçete gibi
+///   "yazıldığı tarih" alanları için.
+///
 /// Ayrıştırılamazsa null döner. [now] testler için dışarıdan verilebilir.
-DateTime? parseTrDate(String label, {DateTime? now}) {
+DateTime? parseTrDate(String label, {DateTime? now, bool preferPast = false}) {
   final parts = label.trim().split(RegExp(r'\s+'));
   if (parts.length < 2) return null;
 
@@ -51,12 +56,20 @@ DateTime? parseTrDate(String label, {DateTime? now}) {
     if (year != null) return DateTime(year, month, day);
   }
 
-  // Yıl yoksa: bu yıl geçmediyse bu yıl, geçtiyse gelecek yıl.
+  // Yıl yoksa: yöne göre en yakın geçiş yılını seç.
   final today = now ?? DateTime.now();
   final todayDate = DateTime(today.year, today.month, today.day);
   var candidate = DateTime(today.year, month, day);
-  if (candidate.isBefore(todayDate)) {
-    candidate = DateTime(today.year + 1, month, day);
+  if (preferPast) {
+    // Geçmiş tercih: bu yıl tarihi ileride kalıyorsa bir yıl geri al.
+    if (candidate.isAfter(todayDate)) {
+      candidate = DateTime(today.year - 1, month, day);
+    }
+  } else {
+    // Gelecek tercih: bu yıl tarihi geçmişte kalıyorsa bir yıl ileri al.
+    if (candidate.isBefore(todayDate)) {
+      candidate = DateTime(today.year + 1, month, day);
+    }
   }
   return candidate;
 }
