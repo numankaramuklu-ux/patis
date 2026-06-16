@@ -23,6 +23,7 @@ import 'notifications_screen.dart';
 import 'pet_sitter_screen.dart';
 import 'profile_screen.dart';
 import 'salon_services_screen.dart';
+import 'vet_vaccine_schedule_screen.dart';
 
 /// Uygulamanın açılış (Ana Sayfa) ekranı.
 ///
@@ -325,8 +326,10 @@ class HomeScreen extends StatelessWidget {
         icon: isVet ? Icons.vaccines_outlined : Icons.content_cut,
         label: isVet ? 'Aşı takvimi' : 'Hizmetlerim',
         color: AppColors.terracotta,
-        // Kuaför: hizmet & fiyat listesi ekranı. Veteriner: henüz hazır değil.
-        onTap: isVet ? () => _soon(context) : () => _openSalonServices(context),
+        // Kuaför: hizmet & fiyat listesi. Veteriner: klinik aşı takvimi.
+        onTap: isVet
+            ? () => _openVaccineSchedule(context)
+            : () => _openSalonServices(context),
       ),
       PetService(
         icon: isVet
@@ -369,6 +372,13 @@ class HomeScreen extends StatelessWidget {
   void _openSalonServices(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => const SalonServicesScreen()),
+    );
+  }
+
+  /// Veterinerin klinik aşı takvimi ekranını açar.
+  void _openVaccineSchedule(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const VetVaccineScheduleScreen()),
     );
   }
 
