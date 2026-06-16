@@ -80,7 +80,7 @@ class HomeScreen extends StatelessWidget {
           Expanded(
             child: _GreetingHeader(
               title: 'Merhaba, $name 👋',
-              subtitle: 'Bugün dostun için ne yapalım?',
+              subtitle: 'Bugün ${passport.pet.name} için ne yapalım?',
             ),
           ),
           _NotificationBell(

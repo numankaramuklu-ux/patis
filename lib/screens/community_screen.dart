@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../state/community_store.dart';
+import '../state/passport_store.dart';
 import '../theme/app_colors.dart';
 import '../widgets/comments_sheet.dart';
 import '../widgets/community_post_card.dart';
@@ -20,6 +21,12 @@ class CommunityScreen extends StatelessWidget {
     // Depoyu DİNLE: beğeni veya yeni gönderi olunca ekran yeniden çizilir.
     final store = context.watch<CommunityStore>();
     final posts = store.posts;
+    // Dostların adlarına göre kişisel alt başlık.
+    final petNames =
+        context.watch<PassportStore>().pets.map((p) => p.pet.name).toList();
+    final subtitle = petNames.isEmpty
+        ? 'Patiş ailesinden paylaşımlar'
+        : '${petNames.join(', ')} ve Patiş ailesinden paylaşımlar';
     return Scaffold(
       body: SafeArea(
         child: ListView(
@@ -28,7 +35,7 @@ class CommunityScreen extends StatelessWidget {
             Text('Topluluk', style: theme.textTheme.headlineMedium),
             const SizedBox(height: 4),
             Text(
-              'Patiş ailesinden paylaşımlar',
+              subtitle,
               style: theme.textTheme.titleMedium?.copyWith(
                 color: AppColors.text.withValues(alpha: 0.6),
               ),

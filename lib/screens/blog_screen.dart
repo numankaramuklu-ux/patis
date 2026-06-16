@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../models/blog_post.dart';
+import '../state/passport_store.dart';
 import '../theme/app_colors.dart';
 import '../widgets/blog_card.dart';
 import 'blog_detail_screen.dart';
@@ -97,6 +99,12 @@ class BlogScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    // Dostların adlarına göre kişisel alt başlık (örn. "Pamuk, Minnoş için...").
+    final petNames =
+        context.watch<PassportStore>().pets.map((p) => p.pet.name).toList();
+    final subtitle = petNames.isEmpty
+        ? 'Dostun için faydalı bilgiler'
+        : '${petNames.join(', ')} için faydalı bilgiler';
     return Scaffold(
       appBar: AppBar(title: const Text('Blog')),
       body: SafeArea(
@@ -107,7 +115,7 @@ class BlogScreen extends StatelessWidget {
             Text('Patiş rehberi', style: theme.textTheme.headlineMedium),
             const SizedBox(height: 4),
             Text(
-              'Dostun için faydalı bilgiler',
+              subtitle,
               style: theme.textTheme.titleMedium?.copyWith(
                 color: AppColors.text.withValues(alpha: 0.6),
               ),
