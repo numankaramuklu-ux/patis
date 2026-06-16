@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../models/community_post.dart';
 import '../state/community_store.dart';
+import '../state/passport_store.dart';
 import '../theme/app_colors.dart';
 
 /// "Yeni gönderi" oluşturma formu (alttan açılan panel).
@@ -31,19 +32,26 @@ class NewPostSheet extends StatefulWidget {
 
 class _NewPostSheetState extends State<NewPostSheet> {
   final _contentController = TextEditingController();
-  final _petController = TextEditingController();
+
+  // Etiketlenecek dost (kendi hayvanlarından). null = etiketsiz.
+  String? _petTag;
+
+  @override
+  void initState() {
+    super.initState();
+    // Varsayılan olarak aktif hayvanı etiketle.
+    _petTag = context.read<PassportStore>().pet.name;
+  }
 
   @override
   void dispose() {
     _contentController.dispose();
-    _petController.dispose();
     super.dispose();
   }
 
   /// Formu doğrular ve geçerliyse gönderiyi depoya ekler.
   void _save() {
     final content = _contentController.text.trim();
-    final pet = _petController.text.trim();
 
     if (content.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -63,7 +71,7 @@ class _NewPostSheetState extends State<NewPostSheet> {
         timeAgo: 'Az önce',
         content: content,
         avatarColor: color,
-        petTag: pet.isEmpty ? null : pet,
+        petTag: _petTag,
       ),
     );
     Navigator.of(context).pop();
@@ -104,12 +112,26 @@ class _NewPostSheetState extends State<NewPostSheet> {
             ),
           ),
           const SizedBox(height: 16),
-          TextField(
-            controller: _petController,
+          // Hangi dostu etiketleyelim? (kendi hayvanlarından)
+          DropdownButtonFormField<String?>(
+            initialValue: _petTag,
+            isExpanded: true,
             decoration: const InputDecoration(
-              labelText: 'Evcil hayvan etiketi (isteğe bağlı)',
-              hintText: 'Örn. Pamuk',
+              labelText: 'Dostu etiketle (isteğe bağlı)',
+              prefixIcon: Icon(Icons.pets),
             ),
+            items: [
+              const DropdownMenuItem<String?>(
+                value: null,
+                child: Text('Etiketsiz'),
+              ),
+              for (final p in context.read<PassportStore>().pets)
+                DropdownMenuItem<String?>(
+                  value: p.pet.name,
+                  child: Text(p.pet.name),
+                ),
+            ],
+            onChanged: (value) => setState(() => _petTag = value),
           ),
           const SizedBox(height: 24),
           SizedBox(
