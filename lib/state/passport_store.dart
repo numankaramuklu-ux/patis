@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/health_record.dart';
+import '../models/journal_entry.dart';
 import '../models/pet.dart';
 import '../models/pet_profile.dart';
 import '../models/vaccination.dart';
@@ -92,6 +93,26 @@ class PassportStore extends ChangeNotifier {
           const WeightEntry(kg: 4.3, dateLabel: 'May'),
           const WeightEntry(kg: 4.2, dateLabel: 'Haz'),
         ],
+        journal: [
+          const JournalEntry(
+            id: 'j1',
+            dateLabel: '14 Haziran',
+            mood: PetMood.oyuncu,
+            text: 'Bütün gün yeni kuş tüyü oyuncağıyla oynadı, çok enerjikti.',
+          ),
+          const JournalEntry(
+            id: 'j2',
+            dateLabel: '10 Haziran',
+            mood: PetMood.keyifsiz,
+            text: 'Mama iştahı azaldı, biraz halsizdi. Takip ediyoruz.',
+          ),
+          const JournalEntry(
+            id: 'j3',
+            dateLabel: '5 Haziran',
+            mood: PetMood.mutlu,
+            text: 'Pencere kenarında güneşlenmeyi çok sevdi, mırlayıp durdu.',
+          ),
+        ],
       );
 
   // ---- Seçili hayvan ve liste erişimi ----
@@ -114,6 +135,7 @@ class PassportStore extends ChangeNotifier {
   List<HealthRecord> get allergies => List.unmodifiable(current.allergies);
   List<HealthRecord> get medications => List.unmodifiable(current.medications);
   List<WeightEntry> get weights => List.unmodifiable(current.weights);
+  List<JournalEntry> get journal => List.unmodifiable(current.journal);
 
   // ---- Hayvan yönetimi ----
 
@@ -186,6 +208,20 @@ class PassportStore extends ChangeNotifier {
   /// Yeni tartımı sonuna ekler (grafikte en sağda, en güncel nokta olarak).
   void addWeight(WeightEntry entry) {
     current.weights.add(entry);
+    notifyListeners();
+    _persistPets();
+  }
+
+  /// Yeni günlük kaydını başa ekler (en yeni en üstte).
+  void addJournalEntry(JournalEntry entry) {
+    current.journal.insert(0, entry);
+    notifyListeners();
+    _persistPets();
+  }
+
+  /// Bir günlük kaydını siler.
+  void deleteJournalEntry(String id) {
+    current.journal.removeWhere((j) => j.id == id);
     notifyListeners();
     _persistPets();
   }
