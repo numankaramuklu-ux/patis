@@ -385,7 +385,45 @@ class VetStore extends ChangeNotifier {
   }
 
   // ---- Reçeteler (hasta kimliğine göre) ----
-  final Map<String, List<VetPrescription>> _prescriptions = {};
+  final Map<String, List<VetPrescription>> _prescriptions = _seedPrescriptions();
+
+  /// Birkaç hasta için örnek reçete (mock). İlk açılışta liste boş kalmasın
+  /// diye; veteriner yeni reçete yazınca diske kalıcı olur.
+  static Map<String, List<VetPrescription>> _seedPrescriptions() => {
+        'p2': [
+          const VetPrescription(
+            dateLabel: '28 Mayıs',
+            medicines: [
+              VetPrescriptionMedicine(
+                  name: 'Glukozamin (eklem desteği)', dosage: '1x1, 30 gün'),
+              VetPrescriptionMedicine(
+                  name: 'Omega-3', dosage: 'Günde 1 • mama ile'),
+            ],
+            note: 'Kalça displazisi takibi; bir ay sonra kontrol.',
+          ),
+        ],
+        'p5': [
+          const VetPrescription(
+            dateLabel: '10 Mayıs',
+            medicines: [
+              VetPrescriptionMedicine(name: 'Probiyotik', dosage: '2x1, 7 gün'),
+              VetPrescriptionMedicine(
+                  name: 'Diyet maması', dosage: '10 gün boyunca'),
+            ],
+            note: 'Mide rahatsızlığı sonrası beslenme düzeni.',
+          ),
+        ],
+        'p1': [
+          const VetPrescription(
+            dateLabel: '14 Nisan',
+            medicines: [
+              VetPrescriptionMedicine(
+                  name: 'Ağız bakım jeli', dosage: 'Günde 2 • diş etine'),
+            ],
+            note: 'Diş eti iltihabı için; iki hafta kullanım.',
+          ),
+        ],
+      };
 
   /// Verilen hastanın reçeteleri (en yeni en üstte; değiştirilemez kopya).
   List<VetPrescription> prescriptionsFor(String patientId) =>
