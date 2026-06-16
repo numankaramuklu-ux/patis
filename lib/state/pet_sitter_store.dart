@@ -58,7 +58,7 @@ class PetSitterStore extends ChangeNotifier {
       pricePerDay: 180,
       summary:
           'Kedilerle aram çok iyi. Yaşlı ve çekingen kedilerde tecrübeliyim.',
-      accepts: [SitterPet.kedi, SitterPet.kus],
+      accepts: [SitterPet.kedi],
       phone: '0535 777 88 99',
     ),
     PetSitter(

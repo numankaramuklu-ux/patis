@@ -6,8 +6,7 @@ import 'package:flutter/material.dart';
 /// burası sitter'ın "kabul ettiği" türleri (birden fazla olabilir) anlatıyor.
 enum SitterPet {
   kedi(label: 'Kedi', icon: Icons.pets),
-  kopek(label: 'Köpek', icon: Icons.pets),
-  kus(label: 'Kuş', icon: Icons.flutter_dash);
+  kopek(label: 'Köpek', icon: Icons.pets);
 
   const SitterPet({required this.label, required this.icon});
 
