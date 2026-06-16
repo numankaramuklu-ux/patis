@@ -28,6 +28,7 @@ class _PetSitterScreenState extends State<PetSitterScreen> {
   SitterPet? _pet; // null = tüm türler
   bool _onlyVerified = false;
   bool _onlyFavorites = false;
+  String? _city; // null = tüm şehirler
   _SitterSort _sort = _SitterSort.puan;
 
   @override
@@ -35,11 +36,17 @@ class _PetSitterScreenState extends State<PetSitterScreen> {
     final theme = Theme.of(context);
     final store = context.watch<PetSitterStore>();
 
+    // Mevcut bakıcılardan benzersiz şehir listesi (alfabetik).
+    final cities = store.sitters.map((s) => s.city).toSet().toList()..sort();
+    // Seçili şehir artık listede yoksa (ör. veri değişti) filtreyi sıfırla.
+    final activeCity = _city != null && cities.contains(_city) ? _city : null;
+
     final filtered =
         store.sitters.where((s) {
           if (_pet != null && !s.accepts.contains(_pet)) return false;
           if (_onlyVerified && !s.verified) return false;
           if (_onlyFavorites && !store.isFavorite(s.id)) return false;
+          if (activeCity != null && s.city != activeCity) return false;
           return true;
         }).toList()..sort((a, b) {
           return switch (_sort) {
@@ -79,11 +86,16 @@ class _PetSitterScreenState extends State<PetSitterScreen> {
               children: [
                 _FilterChip(
                   label: 'Tümü',
-                  selected: _pet == null && !_onlyVerified && !_onlyFavorites,
+                  selected:
+                      _pet == null &&
+                      !_onlyVerified &&
+                      !_onlyFavorites &&
+                      activeCity == null,
                   onTap: () => setState(() {
                     _pet = null;
                     _onlyVerified = false;
                     _onlyFavorites = false;
+                    _city = null;
                   }),
                 ),
                 for (final pet in SitterPet.values)
@@ -109,6 +121,43 @@ class _PetSitterScreenState extends State<PetSitterScreen> {
               ],
             ),
             const SizedBox(height: 12),
+
+            // Şehir filtresi (açılır menü).
+            Row(
+              children: [
+                Icon(
+                  Icons.location_city_outlined,
+                  size: 18,
+                  color: AppColors.text.withValues(alpha: 0.6),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Şehir:',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: AppColors.text.withValues(alpha: 0.6),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: DropdownButton<String?>(
+                    value: activeCity,
+                    isExpanded: true,
+                    underline: const SizedBox.shrink(),
+                    hint: const Text('Tüm şehirler'),
+                    items: [
+                      const DropdownMenuItem<String?>(
+                        value: null,
+                        child: Text('Tüm şehirler'),
+                      ),
+                      for (final c in cities)
+                        DropdownMenuItem<String?>(value: c, child: Text(c)),
+                    ],
+                    onChanged: (value) => setState(() => _city = value),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
 
             // Sıralama.
             Row(
