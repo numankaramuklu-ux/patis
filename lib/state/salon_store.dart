@@ -26,7 +26,8 @@ class SalonStore extends ChangeNotifier {
 
   /// Salonun sunduğu hizmetler (fiyat listesi). İlk açılışta örnek bir liste
   /// ile başlar; kuaför ekleyip silebilir, değişiklikler diske yazılır.
-  final List<SalonService> _services = _seedServices();
+  /// List.of ile büyütülebilir kopya — addService ekleme yapabilsin.
+  final List<SalonService> _services = List.of(_seedServices());
 
   static List<SalonService> _seedServices() => const [
         SalonService(

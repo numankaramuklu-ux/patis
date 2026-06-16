@@ -5,6 +5,7 @@ import '../models/adoption_listing.dart';
 import '../state/adoption_store.dart';
 import '../theme/app_colors.dart';
 import '../widgets/adoption_card.dart';
+import '../widgets/new_adoption_listing_sheet.dart';
 import 'adoption_detail_screen.dart';
 
 /// Sahiplendirme ilanları ekranı (yol haritası #3).
@@ -15,50 +16,6 @@ import 'adoption_detail_screen.dart';
 /// ileride Firebase'den gerçek ilanlarla değiştirilecek.
 class AdoptionScreen extends StatefulWidget {
   const AdoptionScreen({super.key});
-
-  // ---- Mock (sahte) ilanlar ----
-  static const listings = <AdoptionListing>[
-    AdoptionListing(
-      id: 'ad1',
-      name: 'Zeytin',
-      breed: 'Tekir',
-      ageLabel: '3 aylık',
-      city: 'İstanbul',
-      summary: 'Oyuncu, insana çok düşkün bir yavru. Aşıları yapıldı.',
-      species: AdoptionSpecies.kedi,
-      gender: PetGender.disi,
-    ),
-    AdoptionListing(
-      id: 'ad2',
-      name: 'Karamel',
-      breed: 'Golden Retriever',
-      ageLabel: '1 yaşında',
-      city: 'Ankara',
-      summary: 'Sakin ve eğitimli. Çocuklu ailelere çok uygun.',
-      species: AdoptionSpecies.kopek,
-      gender: PetGender.erkek,
-    ),
-    AdoptionListing(
-      id: 'ad3',
-      name: 'Pofuduk',
-      breed: 'British Shorthair',
-      ageLabel: '8 aylık',
-      city: 'İzmir',
-      summary: 'Uysal ve kucağa düşkün. Diğer kedilerle iyi anlaşır.',
-      species: AdoptionSpecies.kedi,
-      gender: PetGender.erkek,
-    ),
-    AdoptionListing(
-      id: 'ad4',
-      name: 'Maya',
-      breed: 'Terrier kırması',
-      ageLabel: '2 yaşında',
-      city: 'Bursa',
-      summary: 'Enerjik ve sadık. Bahçeli evler için ideal.',
-      species: AdoptionSpecies.kopek,
-      gender: PetGender.disi,
-    ),
-  ];
 
   @override
   State<AdoptionScreen> createState() => _AdoptionScreenState();
@@ -75,7 +32,7 @@ class _AdoptionScreenState extends State<AdoptionScreen> {
     final theme = Theme.of(context);
     final store = context.watch<AdoptionStore>();
 
-    final filtered = AdoptionScreen.listings.where((l) {
+    final filtered = store.listings.where((l) {
       if (_species != null && l.species != _species) return false;
       if (_onlyFavorites && !store.isFavorite(l.id)) return false;
       return true;
@@ -83,10 +40,17 @@ class _AdoptionScreenState extends State<AdoptionScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Sahiplendirme')),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => NewAdoptionListingSheet.show(context),
+        backgroundColor: AppColors.forest,
+        foregroundColor: AppColors.cream,
+        icon: const Icon(Icons.add),
+        label: const Text('İlan ver'),
+      ),
       body: SafeArea(
         top: false,
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 96),
           children: [
             Text('Yuva arayan dostlar', style: theme.textTheme.headlineMedium),
             const SizedBox(height: 4),
