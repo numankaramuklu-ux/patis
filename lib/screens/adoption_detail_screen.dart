@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -53,8 +55,16 @@ class AdoptionDetailScreen extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: accent.withValues(alpha: 0.18),
                       shape: BoxShape.circle,
+                      image: listing.photoPath != null
+                          ? DecorationImage(
+                              image: FileImage(File(listing.photoPath!)),
+                              fit: BoxFit.cover,
+                            )
+                          : null,
                     ),
-                    child: Icon(listing.species.icon, color: accent, size: 48),
+                    child: listing.photoPath == null
+                        ? Icon(listing.species.icon, color: accent, size: 48)
+                        : null,
                   ),
                   const SizedBox(height: 12),
                   Text(listing.name, style: theme.textTheme.headlineSmall),

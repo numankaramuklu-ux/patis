@@ -47,6 +47,7 @@ class AdoptionListing {
     required this.summary,
     required this.species,
     required this.gender,
+    this.photoPath,
   });
 
   /// İlanı (örn. favorilerde) benzersiz tanımlayan kimlik.
@@ -73,6 +74,9 @@ class AdoptionListing {
   /// Cinsiyet — kartta küçük rozet olarak gösterilir.
   final PetGender gender;
 
+  /// Kullanıcının seçtiği fotoğrafın cihazdaki yolu (yoksa null → tür ikonu).
+  final String? photoPath;
+
   /// Cihazda saklamak (shared_preferences) için Map'e çevirir. Tür ve cinsiyet
   /// enum adı olarak yazılır.
   Map<String, dynamic> toJson() => {
@@ -84,6 +88,7 @@ class AdoptionListing {
     'summary': summary,
     'species': species.name,
     'gender': gender.name,
+    'photoPath': photoPath,
   };
 
   /// Saklanan Map'ten [AdoptionListing] üretir. Bilinmeyen tür/cinsiyet
@@ -104,5 +109,6 @@ class AdoptionListing {
           (g) => g.name == json['gender'],
           orElse: () => PetGender.disi,
         ),
+        photoPath: json['photoPath'] as String?,
       );
 }
