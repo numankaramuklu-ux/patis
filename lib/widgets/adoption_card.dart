@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 import '../models/adoption_listing.dart';
@@ -47,16 +49,24 @@ class AdoptionCard extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Sol taraf: türün soluk tonlu kutusunda tür ikonu. İleride buraya
-              // hayvanın fotoğrafı gelecek.
+              // Sol taraf: fotoğraf varsa onu, yoksa türün soluk tonlu
+              // kutusunda tür ikonunu gösterir.
               Container(
                 width: 64,
                 height: 64,
                 decoration: BoxDecoration(
                   color: accent.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(18),
+                  image: listing.photoPath != null
+                      ? DecorationImage(
+                          image: FileImage(File(listing.photoPath!)),
+                          fit: BoxFit.cover,
+                        )
+                      : null,
                 ),
-                child: Icon(listing.species.icon, color: accent, size: 30),
+                child: listing.photoPath == null
+                    ? Icon(listing.species.icon, color: accent, size: 30)
+                    : null,
               ),
               const SizedBox(width: 14),
               // Sağ taraf: isim + rozetler + açıklama. Kalan genişliği kaplasın.

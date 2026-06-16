@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../models/adoption_listing.dart';
@@ -40,6 +43,22 @@ class _NewAdoptionListingSheetState extends State<NewAdoptionListingSheet> {
   AdoptionSpecies _species = AdoptionSpecies.kedi;
   PetGender _gender = PetGender.disi;
 
+  // Seçilen fotoğrafın cihazdaki yolu (yoksa tür ikonu gösterilir).
+  String? _photoPath;
+
+  /// Galeriden bir fotoğraf seçtirir ve önizleme için saklar.
+  Future<void> _pickPhoto() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 800,
+      imageQuality: 85,
+    );
+    if (picked != null) {
+      setState(() => _photoPath = picked.path);
+    }
+  }
+
   @override
   void dispose() {
     _nameController.dispose();
@@ -76,6 +95,7 @@ class _NewAdoptionListingSheetState extends State<NewAdoptionListingSheet> {
         summary: summary,
         species: _species,
         gender: _gender,
+        photoPath: _photoPath,
       ),
     );
     Navigator.of(context).pop();
@@ -112,6 +132,62 @@ class _NewAdoptionListingSheetState extends State<NewAdoptionListingSheet> {
             const SizedBox(height: 20),
             Text('Sahiplendirme ilanı', style: theme.textTheme.titleLarge),
             const SizedBox(height: 20),
+
+            // Fotoğraf seçici (isteğe bağlı).
+            Center(
+              child: GestureDetector(
+                onTap: _pickPhoto,
+                child: Container(
+                  width: 110,
+                  height: 110,
+                  decoration: BoxDecoration(
+                    color: AppColors.forest.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: AppColors.forest.withValues(alpha: 0.3),
+                    ),
+                    image: _photoPath != null
+                        ? DecorationImage(
+                            image: FileImage(File(_photoPath!)),
+                            fit: BoxFit.cover,
+                          )
+                        : null,
+                  ),
+                  child: _photoPath != null
+                      ? null
+                      : Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Icons.add_a_photo_outlined,
+                              color: AppColors.forest,
+                              size: 28,
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              'Fotoğraf ekle',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: AppColors.forest,
+                              ),
+                            ),
+                          ],
+                        ),
+                ),
+              ),
+            ),
+            // Fotoğraf seçildiyse değiştir/kaldır seçenekleri.
+            if (_photoPath != null)
+              Center(
+                child: TextButton.icon(
+                  onPressed: () => setState(() => _photoPath = null),
+                  icon: const Icon(Icons.close, size: 18),
+                  label: const Text('Fotoğrafı kaldır'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.terracotta,
+                  ),
+                ),
+              ),
+            const SizedBox(height: 16),
 
             // Tür seçimi.
             SegmentedButton<AdoptionSpecies>(
