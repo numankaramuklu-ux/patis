@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../models/lost_pet.dart';
@@ -385,11 +386,26 @@ class _ContactSheet extends StatelessWidget {
               const Icon(Icons.phone_outlined,
                   size: 20, color: AppColors.forest),
               const SizedBox(width: 10),
-              Text(
-                phone,
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  fontWeight: FontWeight.w600,
+              Expanded(
+                child: Text(
+                  phone,
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
+              ),
+              // Numarayı panoya kopyala (özellikle emülatörde arama/SMS
+              // açılamadığında işe yarar).
+              IconButton(
+                onPressed: () {
+                  Clipboard.setData(ClipboardData(text: phone));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Numara kopyalandı')),
+                  );
+                },
+                icon: const Icon(Icons.copy_outlined, size: 20),
+                color: AppColors.forest,
+                tooltip: 'Numarayı kopyala',
               ),
             ],
           ),
