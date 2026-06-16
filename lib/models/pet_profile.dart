@@ -1,4 +1,5 @@
 import 'health_record.dart';
+import 'journal_entry.dart';
 import 'pet.dart';
 import 'vaccination.dart';
 import 'weight_entry.dart';
@@ -17,10 +18,12 @@ class PetProfile {
     List<HealthRecord>? allergies,
     List<HealthRecord>? medications,
     List<WeightEntry>? weights,
+    List<JournalEntry>? journal,
   })  : vaccinations = vaccinations ?? [],
         allergies = allergies ?? [],
         medications = medications ?? [],
-        weights = weights ?? [];
+        weights = weights ?? [],
+        journal = journal ?? [];
 
   /// Listede bulmak/seçmek için benzersiz kimlik.
   final String id;
@@ -36,6 +39,9 @@ class PetProfile {
   final List<HealthRecord> medications;
   final List<WeightEntry> weights;
 
+  /// Sahibin tuttuğu günlük kayıtları (en yeni en üstte).
+  final List<JournalEntry> journal;
+
   /// Cihazda saklamak (shared_preferences) için Map'e çevirir.
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -45,6 +51,7 @@ class PetProfile {
         'allergies': allergies.map((a) => a.toJson()).toList(),
         'medications': medications.map((m) => m.toJson()).toList(),
         'weights': weights.map((w) => w.toJson()).toList(),
+        'journal': journal.map((j) => j.toJson()).toList(),
       };
 
   /// Saklanan Map'ten [PetProfile] üretir.
@@ -63,6 +70,9 @@ class PetProfile {
             .toList(),
         weights: (json['weights'] as List? ?? const [])
             .map((e) => WeightEntry.fromJson(e as Map<String, dynamic>))
+            .toList(),
+        journal: (json['journal'] as List? ?? const [])
+            .map((e) => JournalEntry.fromJson(e as Map<String, dynamic>))
             .toList(),
       );
 }

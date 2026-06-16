@@ -18,6 +18,7 @@ import '../widgets/passport_share_sheet.dart';
 import '../widgets/section_title.dart';
 import '../widgets/vaccination_card.dart';
 import '../widgets/weight_chart_card.dart';
+import 'pet_journal_screen.dart';
 
 /// Dijital Pasaport ekranı.
 ///
@@ -71,6 +72,9 @@ class PassportScreen extends StatelessWidget {
               pet: pet,
               photoPath: store.photoPath,
               onPickPhoto: () => _pickPhoto(context),
+              onOpenJournal: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const PetJournalScreen()),
+              ),
               onShare: () => PassportShareSheet.show(
                 context,
                 pet: pet,
@@ -405,12 +409,14 @@ class _PassportHeader extends StatelessWidget {
     required this.pet,
     required this.photoPath,
     required this.onPickPhoto,
+    required this.onOpenJournal,
     required this.onShare,
   });
 
   final Pet pet;
   final String? photoPath;
   final VoidCallback onPickPhoto;
+  final VoidCallback onOpenJournal;
   final VoidCallback onShare;
 
   @override
@@ -424,13 +430,22 @@ class _PassportHeader extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Align(
-            alignment: Alignment.centerRight,
-            child: IconButton(
-              onPressed: onShare,
-              icon: const Icon(Icons.qr_code_2_rounded, color: AppColors.cream),
-              tooltip: 'QR ile paylaş',
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              IconButton(
+                onPressed: onOpenJournal,
+                icon: const Icon(Icons.auto_stories_outlined,
+                    color: AppColors.cream),
+                tooltip: 'Günlük',
+              ),
+              IconButton(
+                onPressed: onShare,
+                icon:
+                    const Icon(Icons.qr_code_2_rounded, color: AppColors.cream),
+                tooltip: 'QR ile paylaş',
+              ),
+            ],
           ),
           GestureDetector(
             onTap: onPickPhoto,
