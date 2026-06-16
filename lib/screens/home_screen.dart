@@ -22,6 +22,7 @@ import 'blog_screen.dart';
 import 'notifications_screen.dart';
 import 'pet_sitter_screen.dart';
 import 'profile_screen.dart';
+import 'salon_services_screen.dart';
 
 /// Uygulamanın açılış (Ana Sayfa) ekranı.
 ///
@@ -324,7 +325,8 @@ class HomeScreen extends StatelessWidget {
         icon: isVet ? Icons.vaccines_outlined : Icons.content_cut,
         label: isVet ? 'Aşı takvimi' : 'Hizmetlerim',
         color: AppColors.terracotta,
-        onTap: () => _soon(context),
+        // Kuaför: hizmet & fiyat listesi ekranı. Veteriner: henüz hazır değil.
+        onTap: isVet ? () => _soon(context) : () => _openSalonServices(context),
       ),
       PetService(
         icon: isVet
@@ -332,7 +334,8 @@ class HomeScreen extends StatelessWidget {
             : Icons.price_change_outlined,
         label: isVet ? 'Reçeteler' : 'Fiyat listesi',
         color: AppColors.gold,
-        onTap: () => _soon(context),
+        // "Fiyat listesi" de aynı hizmet ekranını açar (fiyatlar orada).
+        onTap: isVet ? () => _soon(context) : () => _openSalonServices(context),
       ),
       PetService(
         icon: Icons.groups_outlined,
@@ -360,6 +363,13 @@ class HomeScreen extends StatelessWidget {
         ),
       ),
     ];
+  }
+
+  /// Kuaförün hizmet & fiyat listesi ekranını açar.
+  void _openSalonServices(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const SalonServicesScreen()),
+    );
   }
 
   /// Henüz hazır olmayan işletme ekranları için kısa "yakında" geri bildirimi.

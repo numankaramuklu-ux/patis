@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/salon_appointment.dart';
 import '../models/salon_client.dart';
+import '../models/salon_service.dart';
 
 /// Pet salonu (kuaför) panelinin tüm verisini tutan "depo".
 ///
@@ -19,8 +20,36 @@ class SalonStore extends ChangeNotifier {
   }
 
   static const _kAppointments = 'salon_appointments';
+  static const _kServices = 'salon_services';
 
   final List<SalonAppointment> _appointments = _seedAppointments();
+
+  /// Salonun sunduğu hizmetler (fiyat listesi). İlk açılışta örnek bir liste
+  /// ile başlar; kuaför ekleyip silebilir, değişiklikler diske yazılır.
+  final List<SalonService> _services = _seedServices();
+
+  static List<SalonService> _seedServices() => const [
+        SalonService(
+            id: 'sv1', name: 'Tıraş & Banyo', durationMin: 60, price: 450),
+        SalonService(
+            id: 'sv2', name: 'Banyo & fön', durationMin: 45, price: 300),
+        SalonService(
+            id: 'sv3', name: 'Tırnak kesimi', durationMin: 20, price: 120),
+        SalonService(
+          id: 'sv4',
+          name: 'Komple bakım paketi',
+          durationMin: 90,
+          price: 600,
+          note: 'Banyo, tıraş, tırnak ve kulak temizliği birlikte',
+        ),
+        SalonService(
+          id: 'sv5',
+          name: 'Model tıraş',
+          durationMin: 75,
+          price: 520,
+          note: 'Uzun tüylü ırklar için şekilli tıraş',
+        ),
+      ];
 
   /// Randevuları bugüne göreceli tarihlerle üretir; böylece "Bugün"/"Yarın"
   /// etiketleri ve takvim görünümü her zaman güncel kalır (mock veri).
@@ -258,6 +287,15 @@ class SalonStore extends ChangeNotifier {
   /// Tüm müşteriler.
   List<SalonClient> get clients => List.unmodifiable(_clients);
 
+  /// Salonun hizmet/fiyat listesi (dışarıdan değiştirilemez).
+  List<SalonService> get services => List.unmodifiable(_services);
+
+  /// Hizmetlerin ortalama ücreti (özet kartı için). Liste boşsa 0.
+  int get averageServicePrice => _services.isEmpty
+      ? 0
+      : (_services.fold<int>(0, (sum, s) => sum + s.price) / _services.length)
+          .round();
+
   /// Bugünün randevuları (ana ekran ve özet için).
   List<SalonAppointment> get todays =>
       _appointments.where((a) => a.dayLabel == 'Bugün').toList();
@@ -287,18 +325,51 @@ class SalonStore extends ChangeNotifier {
     _persist();
   }
 
-  /// Kayıtlı randevuları diskten yükler (varsa varsayılan seed'in yerini alır).
+  /// Yeni bir hizmet ekler (listenin sonuna).
+  void addService(SalonService service) {
+    _services.add(service);
+    notifyListeners();
+    _persistServices();
+  }
+
+  /// Var olan bir hizmeti günceller (aynı id'li kaydın yerine yazar).
+  void updateService(SalonService service) {
+    final i = _services.indexWhere((s) => s.id == service.id);
+    if (i == -1) return;
+    _services[i] = service;
+    notifyListeners();
+    _persistServices();
+  }
+
+  /// Bir hizmeti listeden siler.
+  void deleteService(String id) {
+    _services.removeWhere((s) => s.id == id);
+    notifyListeners();
+    _persistServices();
+  }
+
+  /// Kayıtlı randevu ve hizmetleri diskten yükler (varsa seed'in yerini alır).
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(_kAppointments);
-    if (raw == null) return;
-    final decoded = (jsonDecode(raw) as List)
-        .map((e) => SalonAppointment.fromJson(e as Map<String, dynamic>))
-        .toList();
-    _appointments
-      ..clear()
-      ..addAll(decoded);
-    notifyListeners();
+    final rawAppointments = prefs.getString(_kAppointments);
+    if (rawAppointments != null) {
+      final decoded = (jsonDecode(rawAppointments) as List)
+          .map((e) => SalonAppointment.fromJson(e as Map<String, dynamic>))
+          .toList();
+      _appointments
+        ..clear()
+        ..addAll(decoded);
+    }
+    final rawServices = prefs.getString(_kServices);
+    if (rawServices != null) {
+      final decoded = (jsonDecode(rawServices) as List)
+          .map((e) => SalonService.fromJson(e as Map<String, dynamic>))
+          .toList();
+      _services
+        ..clear()
+        ..addAll(decoded);
+    }
+    if (rawAppointments != null || rawServices != null) notifyListeners();
   }
 
   /// Randevu listesini JSON olarak diske yazar.
@@ -307,6 +378,15 @@ class SalonStore extends ChangeNotifier {
     await prefs.setString(
       _kAppointments,
       jsonEncode(_appointments.map((a) => a.toJson()).toList()),
+    );
+  }
+
+  /// Hizmet listesini JSON olarak diske yazar.
+  Future<void> _persistServices() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      _kServices,
+      jsonEncode(_services.map((s) => s.toJson()).toList()),
     );
   }
 }
