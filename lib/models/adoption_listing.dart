@@ -8,16 +8,8 @@ import '../theme/app_colors.dart';
 /// seçenek listesi ama her seçeneğe etiket/ikon/renk bağlıyoruz. Böylece
 /// kartta tür başına `if` yazmadan `listing.species.color` diyebiliyoruz.
 enum AdoptionSpecies {
-  kedi(
-    label: 'Kedi',
-    icon: Icons.pets,
-    color: AppColors.terracotta,
-  ),
-  kopek(
-    label: 'Köpek',
-    icon: Icons.pets,
-    color: AppColors.forest,
-  );
+  kedi(label: 'Kedi', icon: Icons.pets, color: AppColors.terracotta),
+  kopek(label: 'Köpek', icon: Icons.pets, color: AppColors.forest);
 
   const AdoptionSpecies({
     required this.label,
@@ -47,6 +39,7 @@ enum PetGender {
 /// değiştireceğiz. Bu sınıf yalnızca bir ilanın taşıdığı bilgiyi tutar.
 class AdoptionListing {
   const AdoptionListing({
+    required this.id,
     required this.name,
     required this.breed,
     required this.ageLabel,
@@ -55,6 +48,9 @@ class AdoptionListing {
     required this.species,
     required this.gender,
   });
+
+  /// İlanı (örn. favorilerde) benzersiz tanımlayan kimlik.
+  final String id;
 
   /// Hayvanın adı (örn. "Zeytin").
   final String name;

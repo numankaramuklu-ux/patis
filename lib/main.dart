@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'screens/main_scaffold.dart';
 import 'screens/register_screen.dart';
+import 'state/adoption_store.dart';
 import 'state/appointment_store.dart';
 import 'state/auth_store.dart';
 import 'state/community_store.dart';
@@ -40,10 +41,12 @@ class PatisApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => NotificationStore()),
         ChangeNotifierProvider(create: (_) => SalonStore()),
         ChangeNotifierProvider(create: (_) => VetStore()),
+        ChangeNotifierProvider(create: (_) => AdoptionStore()),
       ],
       child: MaterialApp(
         title: 'Patiş',
-        debugShowCheckedModeBanner: false, // sağ üstteki "DEBUG" şeridini gizler
+        debugShowCheckedModeBanner:
+            false, // sağ üstteki "DEBUG" şeridini gizler
         theme: AppTheme.light(),
         // Açılış kapısı: oturum yoksa kayıt/giriş, varsa ana ekran gösterilir.
         home: const AuthGate(),
@@ -76,10 +79,6 @@ class _SplashScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: Icon(Icons.pets, size: 56),
-      ),
-    );
+    return const Scaffold(body: Center(child: Icon(Icons.pets, size: 56)));
   }
 }
