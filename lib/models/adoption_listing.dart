@@ -72,4 +72,37 @@ class AdoptionListing {
 
   /// Cinsiyet — kartta küçük rozet olarak gösterilir.
   final PetGender gender;
+
+  /// Cihazda saklamak (shared_preferences) için Map'e çevirir. Tür ve cinsiyet
+  /// enum adı olarak yazılır.
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'breed': breed,
+    'ageLabel': ageLabel,
+    'city': city,
+    'summary': summary,
+    'species': species.name,
+    'gender': gender.name,
+  };
+
+  /// Saklanan Map'ten [AdoptionListing] üretir. Bilinmeyen tür/cinsiyet
+  /// makul bir varsayılana düşer.
+  factory AdoptionListing.fromJson(Map<String, dynamic> json) =>
+      AdoptionListing(
+        id: json['id'] as String? ?? '',
+        name: json['name'] as String? ?? '',
+        breed: json['breed'] as String? ?? '',
+        ageLabel: json['ageLabel'] as String? ?? '',
+        city: json['city'] as String? ?? '',
+        summary: json['summary'] as String? ?? '',
+        species: AdoptionSpecies.values.firstWhere(
+          (s) => s.name == json['species'],
+          orElse: () => AdoptionSpecies.kedi,
+        ),
+        gender: PetGender.values.firstWhere(
+          (g) => g.name == json['gender'],
+          orElse: () => PetGender.disi,
+        ),
+      );
 }
