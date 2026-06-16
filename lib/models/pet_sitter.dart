@@ -42,6 +42,12 @@ class PetSitter {
   /// Semt / bölge (örn. "Kadıköy, İstanbul").
   final String district;
 
+  /// [district]'ten türetilen şehir (virgülden sonraki kısım, örn.
+  /// "İstanbul"). Virgül yoksa tüm metin döner. Şehir filtresi bunu kullanır.
+  String get city => district.contains(',')
+      ? district.split(',').last.trim()
+      : district.trim();
+
   /// Ortalama puan (örn. 4.8). 0–5 arası.
   final double rating;
 
