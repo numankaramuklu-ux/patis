@@ -47,6 +47,32 @@ class ReviewStore extends ChangeNotifier {
           comment: 'Yaşlı köpeğime çok nazik davrandı, fotoğraf gönderdi.',
           timeAgo: '1 hafta önce',
         ),
+        // Veteriner vt1 (Patiş Veteriner Kliniği)
+        Review(
+          id: 'rv4',
+          targetId: 'vt1',
+          author: 'Selin A.',
+          rating: 5,
+          comment: 'Gece acil geldik, hemen ilgilendiler. Çok güven verdiler.',
+          timeAgo: '5 gün önce',
+        ),
+        Review(
+          id: 'rv5',
+          targetId: 'vt1',
+          author: 'Burak T.',
+          rating: 4,
+          comment: 'Doktorlar ilgili, fiyatlar makul. Otopark sıkıntısı var.',
+          timeAgo: '2 hafta önce',
+        ),
+        // Kuaför gr1 (Minik Patiler Kuaför)
+        Review(
+          id: 'rv6',
+          targetId: 'gr1',
+          author: 'Derya T.',
+          rating: 5,
+          comment: 'Tıraş tam istediğim gibi oldu, köpeğim hiç strese girmedi.',
+          timeAgo: '3 gün önce',
+        ),
       ];
 
   /// Belirli bir hedefin yorumları (en yeni en üstte).
