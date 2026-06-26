@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../models/blog_post.dart';
 import '../models/pet_service.dart';
+import '../models/service_provider.dart';
 import '../models/user_role.dart';
 import '../state/appointment_store.dart';
 import '../state/auth_store.dart';
@@ -29,6 +30,7 @@ import 'pet_sitter_screen.dart';
 import 'sitter_profile_screen.dart';
 import 'profile_screen.dart';
 import 'messages_screen.dart';
+import 'provider_finder_screen.dart';
 import 'salon_services_screen.dart';
 import 'walker_finder_screen.dart';
 import 'vet_prescriptions_screen.dart';
@@ -198,6 +200,28 @@ class HomeScreen extends StatelessWidget {
         color: AppColors.terracotta,
         onTap: () => Navigator.of(context).push(
           MaterialPageRoute(builder: (_) => const AdoptionScreen()),
+        ),
+      ),
+      PetService(
+        icon: Icons.medical_services_outlined,
+        label: 'Veteriner',
+        color: AppColors.forest,
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) =>
+                const ProviderFinderScreen(kind: ProviderKind.veteriner),
+          ),
+        ),
+      ),
+      PetService(
+        icon: Icons.content_cut,
+        label: 'Kuaför',
+        color: AppColors.terracotta,
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) =>
+                const ProviderFinderScreen(kind: ProviderKind.kuafor),
+          ),
         ),
       ),
       PetService(
