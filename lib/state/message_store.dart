@@ -23,7 +23,7 @@ class MessageStore extends ChangeNotifier {
   final List<ChatMessage> _messages = List.of(_seedMessages());
 
   static List<ChatThread> _seedThreads() => const [
-        ChatThread(id: 't_elif', peerName: 'Elif K.', peerRole: 'Pet walker'),
+        ChatThread(id: 't_elifk', peerName: 'Elif K.', peerRole: 'Pet walker'),
       ];
 
   static List<ChatMessage> _seedMessages() {
@@ -31,14 +31,14 @@ class MessageStore extends ChangeNotifier {
     return [
       ChatMessage(
         id: 'm1',
-        threadId: 't_elif',
+        threadId: 't_elifk',
         body: 'Merhaba! Pamuk için yürüyüş talebinizi aldım 🐾',
         fromMe: false,
         sentAt: now.subtract(const Duration(minutes: 40)),
       ),
       ChatMessage(
         id: 'm2',
-        threadId: 't_elif',
+        threadId: 't_elifk',
         body: 'Saat 09:00 sizin için uygun mu?',
         fromMe: false,
         sentAt: now.subtract(const Duration(minutes: 39)),
