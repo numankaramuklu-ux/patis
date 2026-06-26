@@ -13,9 +13,11 @@ import '../state/message_store.dart';
 import '../state/notification_store.dart';
 import '../state/passport_store.dart';
 import '../state/pet_walker_store.dart';
+import '../state/review_store.dart';
 import '../state/walk_store.dart';
 import '../theme/app_colors.dart';
 import '../utils/tr_date.dart';
+import '../widgets/review_section.dart';
 import 'chat_screen.dart';
 
 /// Tek bir köpek gezdiricisinin detay ekranı.
@@ -96,6 +98,12 @@ class WalkerDetailScreen extends StatelessWidget {
     final theme = Theme.of(context);
     final store = context.watch<PetWalkerStore>();
     final isFav = store.isFavorite(walker.id);
+    final reviewStore = context.watch<ReviewStore>();
+    final reviewCount = reviewStore.countFor(walker.id);
+    // Yorum varsa canlı ortalamayı, yoksa ilandaki başlangıç puanını göster.
+    final avgRating = reviewCount > 0
+        ? reviewStore.averageFor(walker.id).toStringAsFixed(1)
+        : '${walker.rating}';
     const accent = AppColors.forest;
 
     return Scaffold(
@@ -181,7 +189,7 @@ class WalkerDetailScreen extends StatelessWidget {
               children: [
                 _InfoBox(
                   icon: Icons.star_rounded,
-                  value: '${walker.rating}',
+                  value: avgRating,
                   label: 'puan',
                 ),
                 const SizedBox(width: 12),
@@ -193,7 +201,7 @@ class WalkerDetailScreen extends StatelessWidget {
                 const SizedBox(width: 12),
                 _InfoBox(
                   icon: Icons.reviews_outlined,
-                  value: '${walker.reviewCount}',
+                  value: '$reviewCount',
                   label: 'yorum',
                 ),
               ],
@@ -218,6 +226,10 @@ class WalkerDetailScreen extends StatelessWidget {
                 style: theme.textTheme.bodyLarge?.copyWith(height: 1.4),
               ),
             ),
+            const SizedBox(height: 24),
+
+            // ---- Yorumlar ----
+            ReviewSection(targetId: walker.id, targetName: walker.name),
             const SizedBox(height: 24),
 
             // ---- Aksiyonlar ----
