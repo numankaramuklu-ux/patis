@@ -28,6 +28,7 @@ import 'pet_sitter_screen.dart';
 import 'sitter_profile_screen.dart';
 import 'profile_screen.dart';
 import 'salon_services_screen.dart';
+import 'walker_finder_screen.dart';
 import 'vet_prescriptions_screen.dart';
 import 'vet_vaccine_schedule_screen.dart';
 
@@ -203,6 +204,14 @@ class HomeScreen extends StatelessWidget {
         color: AppColors.forest,
         onTap: () => Navigator.of(context).push(
           MaterialPageRoute(builder: (_) => const PetSitterScreen()),
+        ),
+      ),
+      PetService(
+        icon: Icons.directions_walk,
+        label: 'Köpek Gezdirme',
+        color: AppColors.gold,
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const WalkerFinderScreen()),
         ),
       ),
       PetService(
