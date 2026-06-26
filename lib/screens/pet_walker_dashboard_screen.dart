@@ -6,7 +6,6 @@ import '../models/dog_walk.dart';
 import '../state/notification_store.dart';
 import '../state/walk_store.dart';
 import '../theme/app_colors.dart';
-import '../utils/tr_date.dart';
 import '../widgets/dog_walk_card.dart';
 import '../widgets/new_dog_walk_sheet.dart';
 import 'notifications_screen.dart';
