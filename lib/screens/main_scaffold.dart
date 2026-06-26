@@ -83,8 +83,10 @@ class _MainScaffoldState extends State<MainScaffold> {
       const CommunityScreen(),
     ];
     return Scaffold(
-      // Seçili indekse göre ilgili ekranı göster.
-      body: screens[_currentIndex],
+      // IndexedStack tüm sekmeleri ağaçta canlı tutar; böylece sekmeler arası
+      // geçişte her ekranın durumu (özellikle ana sayfa kaydırma konumu)
+      // korunur — geri dönünce en üste sıçramaz.
+      body: IndexedStack(index: _currentIndex, children: screens),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
         // Bir sekmeye dokununca seçili indeksi güncelle ve ekranı yeniden çiz.
