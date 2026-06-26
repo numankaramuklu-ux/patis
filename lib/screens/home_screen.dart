@@ -11,6 +11,7 @@ import '../state/passport_store.dart';
 import '../state/salon_store.dart';
 import '../state/sitter_booking_store.dart';
 import '../state/vet_store.dart';
+import '../state/walk_store.dart';
 import '../theme/app_colors.dart';
 import '../widgets/pet_card.dart';
 import '../widgets/salon_appointment_card.dart';
@@ -248,27 +249,41 @@ class HomeScreen extends StatelessWidget {
   ) {
     final isVet = role == UserRole.veteriner;
     final isSitter = role == UserRole.petSitter;
+    final isWalker = role == UserRole.petWalker;
     final businessName = auth.businessName ?? auth.name ?? role.label;
     // Özet sayılar ve günün kayıtları role göre ilgili depodan canlı gelir.
     final salon = role == UserRole.kuafor ? context.watch<SalonStore>() : null;
     final vet = isVet ? context.watch<VetStore>() : null;
     final sitter = isSitter ? context.watch<SitterBookingStore>() : null;
-    // Sitter için "bugünkü" değer aktif konaklama sayısıdır.
-    final todayValue =
-        sitter?.activeCount ?? salon?.todayCount ?? vet?.todayCount ?? 0;
-    final pendingValue =
-        sitter?.pendingCount ?? salon?.pendingCount ?? vet?.pendingCount ?? 0;
+    final walk = isWalker ? context.watch<WalkStore>() : null;
+    // Sitter için "bugünkü" değer aktif konaklama, walker için bugünkü yürüyüş.
+    final todayValue = walk?.todayCount ??
+        sitter?.activeCount ??
+        salon?.todayCount ??
+        vet?.todayCount ??
+        0;
+    final pendingValue = walk?.pendingCount ??
+        sitter?.pendingCount ??
+        salon?.pendingCount ??
+        vet?.pendingCount ??
+        0;
 
     // Role göre selamlama emojisi ve alt başlık.
-    final emoji = isVet ? '🩺' : (isSitter ? '🏠' : '✂️');
+    final emoji = isVet
+        ? '🩺'
+        : (isSitter ? '🏠' : (isWalker ? '🐕' : '✂️'));
     final subtitle = isVet
         ? 'Bugünkü hastaların hazır'
         : (isSitter
             ? 'Konaklama taleplerin hazır'
-            : 'Bugünkü randevuların hazır');
+            : (isWalker
+                ? 'Bugünkü yürüyüşlerin hazır'
+                : 'Bugünkü randevuların hazır'));
     final toolsTitle = isVet
         ? 'Klinik araçları'
-        : (isSitter ? 'Sitter araçları' : 'Salon araçları');
+        : (isSitter
+            ? 'Sitter araçları'
+            : (isWalker ? 'Walker araçları' : 'Salon araçları'));
     return [
       Row(
         children: [
@@ -889,9 +904,12 @@ class _BusinessSummaryCard extends StatelessWidget {
     final theme = Theme.of(context);
     final isVet = role == UserRole.veteriner;
     final isSitter = role == UserRole.petSitter;
+    final isWalker = role == UserRole.petWalker;
     final todayLabel = isVet
         ? 'bugünkü hasta'
-        : (isSitter ? 'aktif konaklama' : 'bugünkü randevu');
+        : (isSitter
+            ? 'aktif konaklama'
+            : (isWalker ? 'bugünkü yürüyüş' : 'bugünkü randevu'));
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(

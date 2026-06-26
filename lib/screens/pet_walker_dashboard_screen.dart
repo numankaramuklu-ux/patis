@@ -2,23 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
-import '../models/sitter_booking.dart';
+import '../models/dog_walk.dart';
 import '../state/notification_store.dart';
-import '../state/sitter_booking_store.dart';
+import '../state/walk_store.dart';
 import '../theme/app_colors.dart';
 import '../utils/tr_date.dart';
-import '../widgets/new_sitter_booking_sheet.dart';
-import '../widgets/sitter_booking_card.dart';
+import '../widgets/dog_walk_card.dart';
+import '../widgets/new_dog_walk_sheet.dart';
 import 'notifications_screen.dart';
 
-/// Pet sitter rolünün 1. sekmesi: "Rezervasyonlar" paneli (dashboard).
+/// Pet walker rolünün 1. sekmesi: "Yürüyüşler" paneli (dashboard).
 ///
-/// Üstte özet istatistik kartı (aktif konaklama, bekleyen talep, beklenen
-/// kazanç), altında onay bekleyen talepler ile yaklaşan konaklamalar. Karta
-/// dokununca aksiyon paneli ([SitterBookingDetailSheet]) açılır. Veriler
-/// [SitterBookingStore]'dan canlı gelir.
-class PetSitterDashboardScreen extends StatelessWidget {
-  const PetSitterDashboardScreen({super.key, this.onSelectTab});
+/// Üstte özet istatistik kartı (bugünkü yürüyüş, bekleyen talep, beklenen
+/// kazanç), altında onay bekleyen talepler ile tüm yürüyüşler. Karta dokununca
+/// aksiyon paneli ([WalkDetailSheet]) açılır. Veriler [WalkStore]'dan gelir.
+class PetWalkerDashboardScreen extends StatelessWidget {
+  const PetWalkerDashboardScreen({super.key, this.onSelectTab});
 
   /// Bildirime dokununca ilgili sekmeye geçmek için (MainScaffold'dan gelir).
   final ValueChanged<int>? onSelectTab;
@@ -26,17 +25,12 @@ class PetSitterDashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final store = context.watch<SitterBookingStore>();
+    final store = context.watch<WalkStore>();
     final unread = context.watch<NotificationStore>().unreadCount;
-    final all = store.bookings;
+    final all = store.walks;
 
-    // Onay bekleyenleri öne al; ardından kalan rezervasyonlar tarih sırasında.
-    final pending = all
-        .where((b) => b.status == SitterBookingStatus.bekliyor)
-        .toList();
-    final others = all
-        .where((b) => b.status != SitterBookingStatus.bekliyor)
-        .toList();
+    final pending = all.where((w) => w.status == WalkStatus.bekliyor).toList();
+    final others = all.where((w) => w.status != WalkStatus.bekliyor).toList();
 
     return Scaffold(
       body: SafeArea(
@@ -47,7 +41,7 @@ class PetSitterDashboardScreen extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: Text('Rezervasyonlar',
+                  child: Text('Yürüyüşler',
                       style: theme.textTheme.headlineMedium),
                 ),
                 _NotificationBell(
@@ -64,13 +58,13 @@ class PetSitterDashboardScreen extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             _SummaryCard(
-              active: store.activeCount,
+              today: store.todayCount,
               pending: store.pendingCount,
               earnings: store.projectedEarnings,
             ),
             const SizedBox(height: 24),
 
-            // Onay bekleyen talepler bölümü.
+            // Onay bekleyen talepler.
             if (pending.isNotEmpty) ...[
               Row(
                 children: [
@@ -94,25 +88,25 @@ class PetSitterDashboardScreen extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 12),
-              for (final b in pending) ...[
-                SitterBookingCard(
-                  booking: b,
-                  onTap: () => SitterBookingDetailSheet.show(context, b),
+              for (final w in pending) ...[
+                DogWalkCard(
+                  walk: w,
+                  onTap: () => WalkDetailSheet.show(context, w),
                 ),
                 const SizedBox(height: 12),
               ],
               const SizedBox(height: 12),
             ],
 
-            // Diğer rezervasyonlar (onaylı / tamamlanmış / iptal).
-            Text('Tüm konaklamalar', style: theme.textTheme.titleLarge),
+            // Tüm yürüyüşler.
+            Text('Tüm yürüyüşler', style: theme.textTheme.titleLarge),
             const SizedBox(height: 12),
             if (others.isEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 20),
                 child: Center(
                   child: Text(
-                    'Henüz konaklama yok',
+                    'Henüz yürüyüş yok',
                     style: theme.textTheme.titleMedium?.copyWith(
                       color: AppColors.text.withValues(alpha: 0.6),
                     ),
@@ -120,10 +114,10 @@ class PetSitterDashboardScreen extends StatelessWidget {
                 ),
               )
             else
-              for (final b in others) ...[
-                SitterBookingCard(
-                  booking: b,
-                  onTap: () => SitterBookingDetailSheet.show(context, b),
+              for (final w in others) ...[
+                DogWalkCard(
+                  walk: w,
+                  onTap: () => WalkDetailSheet.show(context, w),
                 ),
                 const SizedBox(height: 12),
               ],
@@ -131,11 +125,86 @@ class PetSitterDashboardScreen extends StatelessWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => NewSitterBookingSheet.show(context),
+        onPressed: () => NewDogWalkSheet.show(context),
         backgroundColor: AppColors.forest,
         foregroundColor: AppColors.cream,
         icon: const Icon(Icons.add),
-        label: const Text('Yeni konaklama'),
+        label: const Text('Yeni yürüyüş'),
+      ),
+    );
+  }
+}
+
+/// Üstteki özet istatistik kartı (forest zeminli): bugünkü yürüyüş, bekleyen
+/// talep, beklenen kazanç.
+class _SummaryCard extends StatelessWidget {
+  const _SummaryCard({
+    required this.today,
+    required this.pending,
+    required this.earnings,
+  });
+
+  final int today;
+  final int pending;
+  final int earnings;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+      decoration: BoxDecoration(
+        color: AppColors.forest,
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Row(
+        children: [
+          _Stat(value: '$today', label: 'bugünkü yürüyüş'),
+          _divider(),
+          _Stat(value: '$pending', label: 'bekleyen talep'),
+          _divider(),
+          _Stat(
+            value: '${(earnings / 1000).toStringAsFixed(1)}k₺',
+            label: 'beklenen kazanç',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _divider() => Container(
+        width: 1,
+        height: 34,
+        color: AppColors.cream.withValues(alpha: 0.2),
+      );
+}
+
+class _Stat extends StatelessWidget {
+  const _Stat({required this.value, required this.label});
+
+  final String value;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Expanded(
+      child: Column(
+        children: [
+          Text(
+            value,
+            style: theme.textTheme.headlineSmall?.copyWith(
+              color: AppColors.cream,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: AppColors.cream.withValues(alpha: 0.8),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -188,91 +257,13 @@ class _NotificationBell extends StatelessWidget {
   }
 }
 
-/// Üstteki özet istatistik kartı (forest zeminli): aktif konaklama, bekleyen
-/// talep, beklenen kazanç.
-class _SummaryCard extends StatelessWidget {
-  const _SummaryCard({
-    required this.active,
-    required this.pending,
-    required this.earnings,
-  });
+/// Yürüyüş detayını ve duruma göre aksiyon butonlarını gösteren alt panel.
+class WalkDetailSheet extends StatelessWidget {
+  const WalkDetailSheet({super.key, required this.walk});
 
-  final int active;
-  final int pending;
-  final int earnings;
+  final DogWalk walk;
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-      decoration: BoxDecoration(
-        color: AppColors.forest,
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: Row(
-        children: [
-          _Stat(value: '$active', label: 'aktif konaklama'),
-          _divider(),
-          _Stat(value: '$pending', label: 'bekleyen talep'),
-          _divider(),
-          _Stat(
-            value: '${(earnings / 1000).toStringAsFixed(1)}k₺',
-            label: 'beklenen kazanç',
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _divider() => Container(
-        width: 1,
-        height: 34,
-        color: AppColors.cream.withValues(alpha: 0.2),
-      );
-}
-
-class _Stat extends StatelessWidget {
-  const _Stat({required this.value, required this.label});
-
-  final String value;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Expanded(
-      child: Column(
-        children: [
-          Text(
-            value,
-            style: theme.textTheme.headlineSmall?.copyWith(
-              color: AppColors.cream,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            label,
-            textAlign: TextAlign.center,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: AppColors.cream.withValues(alpha: 0.8),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Rezervasyon detayını ve duruma göre aksiyon butonlarını gösteren alt panel.
-///
-/// Salon randevu detay paneliyle aynı deseni izler; pet sitter panelinin hem
-/// dashboard hem de takvim ekranı bunu kullanır.
-class SitterBookingDetailSheet extends StatelessWidget {
-  const SitterBookingDetailSheet({super.key, required this.booking});
-
-  final SitterBooking booking;
-
-  static void show(BuildContext context, SitterBooking booking) {
+  static void show(BuildContext context, DogWalk walk) {
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: AppColors.cream,
@@ -280,17 +271,12 @@ class SitterBookingDetailSheet extends StatelessWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
-      builder: (_) => SitterBookingDetailSheet(booking: booking),
+      builder: (_) => WalkDetailSheet(walk: walk),
     );
   }
 
-  /// Durumu değiştirir, kullanıcıya kısa bilgi verir ve paneli kapatır.
-  void _setStatus(
-    BuildContext context,
-    SitterBookingStatus status,
-    String msg,
-  ) {
-    context.read<SitterBookingStore>().updateStatus(booking.id, status);
+  void _setStatus(BuildContext context, WalkStatus status, String msg) {
+    context.read<WalkStore>().updateStatus(walk.id, status);
     Navigator.of(context).pop();
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
@@ -298,7 +284,7 @@ class SitterBookingDetailSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final b = booking;
+    final w = walk;
     return Padding(
       padding: EdgeInsets.fromLTRB(
         24,
@@ -325,20 +311,20 @@ class SitterBookingDetailSheet extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: Text('${b.petName} • ${b.breed}',
+                  child: Text('${w.petName} • ${w.breed}',
                       style: theme.textTheme.titleLarge),
                 ),
                 Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: b.status.color.withValues(alpha: 0.14),
+                    color: w.status.color.withValues(alpha: 0.14),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
-                    b.status.label,
+                    w.status.label,
                     style: TextStyle(
-                      color: b.status.color,
+                      color: w.status.color,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -347,30 +333,27 @@ class SitterBookingDetailSheet extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             _DetailRow(
-                icon: Icons.person_outline, label: 'Sahibi', value: b.ownerName),
-            _DetailRow(icon: Icons.pets, label: 'Tür', value: b.species),
+                icon: Icons.person_outline, label: 'Sahibi', value: w.ownerName),
             _DetailRow(
-              icon: Icons.date_range_outlined,
-              label: 'Tarih',
-              value:
-                  '${formatTrDate(b.startDate)} – ${formatTrDate(b.endDate)}',
+              icon: Icons.schedule,
+              label: 'Zaman',
+              value: '${w.dayLabel}, ${w.time}',
             ),
             _DetailRow(
-                icon: Icons.bedtime_outlined,
+                icon: Icons.timelapse,
                 label: 'Süre',
-                value: '${b.nights} gece'),
+                value: '${w.durationMin} dk'),
             _DetailRow(
               icon: Icons.payments_outlined,
               label: 'Ücret',
-              value: '${b.total} ₺  (${b.pricePerNight} ₺/gece)',
+              value: '${w.price} ₺',
             ),
-            if (b.note != null && b.note!.isNotEmpty)
+            if (w.note != null && w.note!.isNotEmpty)
               _DetailRow(
                   icon: Icons.sticky_note_2_outlined,
                   label: 'Not',
-                  value: b.note!),
-            if (b.phone != null && b.phone!.isNotEmpty)
-              _PhoneRow(phone: b.phone!),
+                  value: w.note!),
+            if (w.phone != null && w.phone!.isNotEmpty) _PhoneRow(phone: w.phone!),
             const SizedBox(height: 24),
             ..._actions(context),
           ],
@@ -379,58 +362,57 @@ class SitterBookingDetailSheet extends StatelessWidget {
     );
   }
 
-  /// Mevcut duruma göre uygun aksiyon butonlarını üretir.
   List<Widget> _actions(BuildContext context) {
-    switch (booking.status) {
-      case SitterBookingStatus.bekliyor:
+    switch (walk.status) {
+      case WalkStatus.bekliyor:
         return [
           _PrimaryButton(
-            label: 'Rezervasyonu onayla',
+            label: 'Yürüyüşü onayla',
             color: AppColors.forest,
             icon: Icons.check_circle_outline,
-            onPressed: () => _setStatus(
-                context, SitterBookingStatus.onaylandi, 'Rezervasyon onaylandı'),
+            onPressed: () =>
+                _setStatus(context, WalkStatus.onaylandi, 'Yürüyüş onaylandı'),
           ),
           const SizedBox(height: 10),
           _TextAction(
             label: 'Talebi reddet',
             color: AppColors.terracotta,
-            onPressed: () => _setStatus(
-                context, SitterBookingStatus.iptal, 'Talep reddedildi'),
+            onPressed: () =>
+                _setStatus(context, WalkStatus.iptal, 'Talep reddedildi'),
           ),
         ];
-      case SitterBookingStatus.onaylandi:
+      case WalkStatus.onaylandi:
         return [
           _PrimaryButton(
-            label: 'Konaklamayı tamamla',
+            label: 'Yürüyüşü tamamla',
             color: const Color(0xFF5B8C7B),
             icon: Icons.done_all,
-            onPressed: () => _setStatus(context,
-                SitterBookingStatus.tamamlandi, 'Konaklama tamamlandı'),
+            onPressed: () => _setStatus(
+                context, WalkStatus.tamamlandi, 'Yürüyüş tamamlandı'),
           ),
           const SizedBox(height: 10),
           _TextAction(
-            label: 'Rezervasyonu iptal et',
+            label: 'Yürüyüşü iptal et',
             color: AppColors.terracotta,
-            onPressed: () => _setStatus(
-                context, SitterBookingStatus.iptal, 'Rezervasyon iptal edildi'),
+            onPressed: () =>
+                _setStatus(context, WalkStatus.iptal, 'Yürüyüş iptal edildi'),
           ),
         ];
-      case SitterBookingStatus.tamamlandi:
+      case WalkStatus.tamamlandi:
         return [
           _InfoNote(
             icon: Icons.done_all,
-            text: 'Bu konaklama tamamlandı.',
+            text: 'Bu yürüyüş tamamlandı.',
             color: const Color(0xFF5B8C7B),
           ),
         ];
-      case SitterBookingStatus.iptal:
+      case WalkStatus.iptal:
         return [
           _TextAction(
             label: 'İptali geri al (bekliyor)',
             color: AppColors.forest,
-            onPressed: () => _setStatus(
-                context, SitterBookingStatus.bekliyor, 'Talep geri alındı'),
+            onPressed: () =>
+                _setStatus(context, WalkStatus.bekliyor, 'Talep geri alındı'),
           ),
         ];
     }
@@ -483,7 +465,7 @@ class _DetailRow extends StatelessWidget {
   }
 }
 
-/// Telefon satırı — kopyalama butonuyla (emülatörde arama açılamadığında işe yarar).
+/// Telefon satırı — kopyalama butonuyla.
 class _PhoneRow extends StatelessWidget {
   const _PhoneRow({required this.phone});
 

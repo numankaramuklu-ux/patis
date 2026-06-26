@@ -5,8 +5,14 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../models/app_notification.dart';
 import '../models/pet_sitter.dart';
+import '../models/sitter_booking.dart';
+import '../state/auth_store.dart';
+import '../state/notification_store.dart';
+import '../state/passport_store.dart';
 import '../state/pet_sitter_store.dart';
+import '../state/sitter_booking_store.dart';
 import '../theme/app_colors.dart';
 import '../utils/tr_date.dart';
 
@@ -42,9 +48,18 @@ class PetSitterDetailScreen extends StatelessWidget {
     );
   }
 
-  /// Tarih aralığı seçtirir ve rezervasyon talebini (mock) onaylar.
+  /// Tarih aralığı seçtirir; seçilince talebi bakıcının rezervasyon listesine
+  /// "onay bekliyor" olarak ekler ve bir bildirim oluşturur. Böylece bakıcı
+  /// tarafında otomatik olarak "Onay bekleyenler"e düşer.
   Future<void> _requestBooking(BuildContext context) async {
     final now = DateTime.now();
+    // Talebi göndermeden önce gerekli depoları/verileri al (await sonrası
+    // context kullanımını azaltmak için).
+    final bookingStore = context.read<SitterBookingStore>();
+    final notificationStore = context.read<NotificationStore>();
+    final pet = context.read<PassportStore>().pet;
+    final ownerName = context.read<AuthStore>().name ?? 'Bir müşteri';
+
     final range = await showDateRangePicker(
       context: context,
       firstDate: now,
@@ -53,12 +68,36 @@ class PetSitterDetailScreen extends StatelessWidget {
       saveText: 'Talep et',
     );
     if (range == null || !context.mounted) return;
-    final days = range.duration.inDays + 1;
-    final total = days * sitter.pricePerDay;
+
+    final booking = SitterBooking(
+      id: 'req${DateTime.now().millisecondsSinceEpoch}',
+      ownerName: ownerName,
+      petName: pet.name,
+      breed: pet.breed,
+      species: pet.species ?? '',
+      startDate: range.start,
+      endDate: range.end,
+      pricePerNight: sitter.pricePerDay,
+      status: SitterBookingStatus.bekliyor,
+    );
+    // Otomatik olarak bekleyen rezervasyonlara ekle.
+    bookingStore.add(booking);
+    // Bakıcıya bildirim oluştur.
+    notificationStore.add(
+      AppNotification(
+        kind: NotificationKind.booking,
+        title: 'Yeni rezervasyon talebi',
+        body: '$ownerName, ${pet.name} için ${booking.rangeLabel} '
+            'konaklama talebinde bulundu.',
+        timeAgo: 'Az önce',
+      ),
+    );
+
     _snack(
       context,
       '${formatTrDayMonth(range.start)} – ${formatTrDayMonth(range.end)} '
-      '($days gün • ₺$total) rezervasyon talebin gönderildi 🐾',
+      '(${booking.nights} gece • ₺${booking.total}) rezervasyon talebin '
+      'gönderildi 🐾',
     );
   }
 

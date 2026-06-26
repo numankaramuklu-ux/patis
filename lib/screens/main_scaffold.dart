@@ -9,11 +9,13 @@ import 'home_screen.dart';
 import 'lost_pet_screen.dart';
 import 'passport_screen.dart';
 import 'pet_sitter_dashboard_screen.dart';
+import 'pet_walker_dashboard_screen.dart';
 import 'salon_appointments_screen.dart';
 import 'salon_clients_screen.dart';
 import 'sitter_schedule_screen.dart';
 import 'vet_appointments_screen.dart';
 import 'vet_patients_screen.dart';
+import 'walk_schedule_screen.dart';
 
 /// Uygulamanın ana kabuğu: alttaki 5 sekmeli navigasyon çubuğu.
 ///
@@ -106,6 +108,8 @@ class _MainScaffoldState extends State<MainScaffold> {
         return const VetPatientsScreen();
       case UserRole.petSitter:
         return PetSitterDashboardScreen(onSelectTab: _selectTab);
+      case UserRole.petWalker:
+        return PetWalkerDashboardScreen(onSelectTab: _selectTab);
       case UserRole.kullanici:
         return const PassportScreen();
     }
@@ -120,6 +124,8 @@ class _MainScaffoldState extends State<MainScaffold> {
         return const VetAppointmentsScreen();
       case UserRole.petSitter:
         return const SitterScheduleScreen();
+      case UserRole.petWalker:
+        return const WalkScheduleScreen();
       case UserRole.kullanici:
         return const AppointmentScreen();
     }
@@ -145,6 +151,12 @@ class _MainScaffoldState extends State<MainScaffold> {
           icon: Icon(Icons.event_note_outlined),
           selectedIcon: Icon(Icons.event_note),
           label: 'Rezervasyon',
+        );
+      case UserRole.petWalker:
+        return const NavigationDestination(
+          icon: Icon(Icons.directions_walk_outlined),
+          selectedIcon: Icon(Icons.directions_walk),
+          label: 'Yürüyüş',
         );
       case UserRole.kullanici:
         return const NavigationDestination(

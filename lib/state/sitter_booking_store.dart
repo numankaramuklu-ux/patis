@@ -139,45 +139,6 @@ class SitterBookingStore extends ChangeNotifier {
     _persist();
   }
 
-  // Demo amaçlı "gelen talep" havuzu. Backend olmadığından, gerçek bir sahibin
-  // talep göndermesini simüle etmek için sırayla bu kayıtlardan biri eklenir.
-  static const _incomingPool = [
-    ('Selin A.', 'Lokum', 'Maltese', 'Köpek', 280, '0533 444 55 66'),
-    ('Onur B.', 'Duman', 'Pomeranian', 'Köpek', 300, '0535 777 88 99'),
-    ('Gizem D.', 'Şila', 'Poodle', 'Köpek', 320, '0536 222 33 44'),
-    ('Emre S.', 'Maviş', 'Scottish Fold', 'Kedi', 240, '0537 555 66 77'),
-  ];
-  int _incomingIndex = 0;
-
-  /// Yeni bir "gelen rezervasyon talebi" simüle eder: havuzdan bir kayıt alıp
-  /// bekleyen (onay bekleyen) bir rezervasyon olarak ekler ve eklenen kaydı
-  /// döndürür. Çağıran taraf buna karşılık bir bildirim oluşturabilir.
-  SitterBooking receiveIncomingRequest() {
-    final now = DateTime.now();
-    final p = _incomingPool[_incomingIndex % _incomingPool.length];
-    _incomingIndex++;
-    // Yakın bir tarih aralığı üret (3–6 gün sonra başlayan birkaç gecelik).
-    final startOffset = 3 + (_incomingIndex % 4);
-    final start =
-        DateTime(now.year, now.month, now.day).add(Duration(days: startOffset));
-    final booking = SitterBooking(
-      id: 'in${DateTime.now().millisecondsSinceEpoch}',
-      ownerName: p.$1,
-      petName: p.$2,
-      breed: p.$3,
-      species: p.$4,
-      startDate: start,
-      endDate: start.add(const Duration(days: 3)),
-      pricePerNight: p.$5,
-      phone: p.$6,
-      status: SitterBookingStatus.bekliyor,
-    );
-    _bookings.add(booking);
-    notifyListeners();
-    _persist();
-    return booking;
-  }
-
   /// Bir rezervasyonun durumunu değiştirir (onayla / tamamla / iptal).
   void updateStatus(String id, SitterBookingStatus status) {
     final i = _bookings.indexWhere((b) => b.id == id);

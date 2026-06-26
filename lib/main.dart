@@ -15,6 +15,7 @@ import 'state/salon_store.dart';
 import 'state/sitter_booking_store.dart';
 import 'state/sitter_profile_store.dart';
 import 'state/sitter_review_store.dart';
+import 'state/walk_store.dart';
 import 'state/vet_store.dart';
 import 'theme/app_theme.dart';
 
@@ -50,6 +51,7 @@ class PatisApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => SitterBookingStore()),
         ChangeNotifierProvider(create: (_) => SitterProfileStore()),
         ChangeNotifierProvider(create: (_) => SitterReviewStore()),
+        ChangeNotifierProvider(create: (_) => WalkStore()),
       ],
       child: MaterialApp(
         title: 'Patiş',

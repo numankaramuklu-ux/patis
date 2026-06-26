@@ -16,7 +16,10 @@ enum UserRole {
   veteriner,
 
   /// Pet sitter / evde bakıcı. Konaklama (rezervasyon) talepleri alır.
-  petSitter;
+  petSitter,
+
+  /// Pet walker / köpek gezdirici. Yürüyüş talepleri alır.
+  petWalker;
 
   /// Rol kartında gösterilen kısa başlık.
   String get label => switch (this) {
@@ -24,6 +27,7 @@ enum UserRole {
         UserRole.kuafor => 'Pet kuaförü',
         UserRole.veteriner => 'Veteriner',
         UserRole.petSitter => 'Pet sitter',
+        UserRole.petWalker => 'Pet walker',
       };
 
   /// Rol kartının altındaki açıklama satırı.
@@ -34,6 +38,8 @@ enum UserRole {
         UserRole.veteriner => 'Klinik hizmeti veriyorum, hasta takibi yapacağım',
         UserRole.petSitter =>
           'Evde hayvan bakıyorum, konaklama rezervasyonları alacağım',
+        UserRole.petWalker =>
+          'Köpek gezdiriyorum, yürüyüş talepleri alacağım',
       };
 
   /// Rol kartındaki ikon.
@@ -42,6 +48,7 @@ enum UserRole {
         UserRole.kuafor => Icons.content_cut,
         UserRole.veteriner => Icons.medical_services_outlined,
         UserRole.petSitter => Icons.home_work_outlined,
+        UserRole.petWalker => Icons.directions_walk,
       };
 
   /// İşletme adı (salon/klinik) alanı yalnızca kuaför ve veteriner için anlamlı.
