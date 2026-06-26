@@ -9,12 +9,14 @@ import '../models/app_notification.dart';
 import '../models/dog_walk.dart';
 import '../models/pet_walker.dart';
 import '../state/auth_store.dart';
+import '../state/message_store.dart';
 import '../state/notification_store.dart';
 import '../state/passport_store.dart';
 import '../state/pet_walker_store.dart';
 import '../state/walk_store.dart';
 import '../theme/app_colors.dart';
 import '../utils/tr_date.dart';
+import 'chat_screen.dart';
 
 /// Tek bir köpek gezdiricisinin detay ekranı.
 ///
@@ -557,6 +559,21 @@ class _ContactSheet extends StatelessWidget {
     }
   }
 
+  /// Uygulama içi sohbeti açar (gerekirse oluşturur).
+  void _openChat(BuildContext context) {
+    final store = context.read<MessageStore>();
+    final id = store.openThread(
+      peerName: walker.name,
+      peerRole: 'Pet walker',
+    );
+    final thread =
+        store.threads.firstWhere((t) => t.id == id);
+    Navigator.of(context).pop();
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => ChatScreen(thread: thread)),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -633,8 +650,7 @@ class _ContactSheet extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () =>
-                      _launch(context, Uri(scheme: 'sms', path: phone)),
+                  onPressed: () => _openChat(context),
                   icon: const Icon(Icons.message_outlined),
                   label: const Text('Mesaj'),
                   style: OutlinedButton.styleFrom(

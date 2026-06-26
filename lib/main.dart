@@ -8,6 +8,7 @@ import 'state/appointment_store.dart';
 import 'state/auth_store.dart';
 import 'state/community_store.dart';
 import 'state/lost_pet_store.dart';
+import 'state/message_store.dart';
 import 'state/notification_store.dart';
 import 'state/passport_store.dart';
 import 'state/pet_sitter_store.dart';
@@ -45,6 +46,7 @@ class PatisApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => CommunityStore()),
         ChangeNotifierProvider(create: (_) => PassportStore()),
         ChangeNotifierProvider(create: (_) => NotificationStore()),
+        ChangeNotifierProvider(create: (_) => MessageStore()),
         ChangeNotifierProvider(create: (_) => SalonStore()),
         ChangeNotifierProvider(create: (_) => VetStore()),
         ChangeNotifierProvider(create: (_) => AdoptionStore()),
