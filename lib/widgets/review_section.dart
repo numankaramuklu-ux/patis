@@ -16,6 +16,8 @@ class ReviewSection extends StatelessWidget {
     super.key,
     required this.targetId,
     required this.targetName,
+    this.showAddButton = true,
+    this.title = 'Yorumlar',
   });
 
   /// Yorumların ait olduğu hizmet verenin kimliği.
@@ -23,6 +25,13 @@ class ReviewSection extends StatelessWidget {
 
   /// Değerlendirme panelinde gösterilecek ad (örn. "Elif K.").
   final String targetName;
+
+  /// "Değerlendir" düğmesini göster. İşletme kendi panelinde yorumlarını
+  /// görüntülerken `false` verilir (kendi kendini değerlendiremez).
+  final bool showAddButton;
+
+  /// Bölüm başlığı (örn. "Yorumlar" / "Müşteri yorumların").
+  final String title;
 
   @override
   Widget build(BuildContext context) {
@@ -37,15 +46,16 @@ class ReviewSection extends StatelessWidget {
       children: [
         Row(
           children: [
-            Text('Yorumlar', style: theme.textTheme.titleLarge),
+            Text(title, style: theme.textTheme.titleLarge),
             const Spacer(),
-            TextButton.icon(
-              onPressed: () =>
-                  _AddReviewSheet.show(context, targetId, targetName),
-              icon: const Icon(Icons.rate_review_outlined, size: 18),
-              label: const Text('Değerlendir'),
-              style: TextButton.styleFrom(foregroundColor: AppColors.forest),
-            ),
+            if (showAddButton)
+              TextButton.icon(
+                onPressed: () =>
+                    _AddReviewSheet.show(context, targetId, targetName),
+                icon: const Icon(Icons.rate_review_outlined, size: 18),
+                label: const Text('Değerlendir'),
+                style: TextButton.styleFrom(foregroundColor: AppColors.forest),
+              ),
           ],
         ),
         const SizedBox(height: 8),
@@ -76,7 +86,9 @@ class ReviewSection extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 12),
             child: Text(
-              'Henüz yorum yok. İlk değerlendirmeyi sen yap 🐾',
+              showAddButton
+                  ? 'Henüz yorum yok. İlk değerlendirmeyi sen yap 🐾'
+                  : 'Henüz müşteri yorumu yok.',
               style: theme.textTheme.bodyLarge?.copyWith(
                 color: AppColors.text.withValues(alpha: 0.6),
               ),

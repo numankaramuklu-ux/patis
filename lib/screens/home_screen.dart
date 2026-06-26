@@ -16,6 +16,7 @@ import '../state/vet_store.dart';
 import '../state/walk_store.dart';
 import '../theme/app_colors.dart';
 import '../widgets/pet_card.dart';
+import '../widgets/review_section.dart';
 import '../widgets/salon_appointment_card.dart';
 import '../widgets/section_title.dart';
 import '../widgets/service_grid.dart';
@@ -400,7 +401,34 @@ class HomeScreen extends StatelessWidget {
             const SizedBox(height: 12),
           ],
       ],
+      // İşletmenin aldığı müşteri yorumları. Demo: gerçek kimlik sistemi
+      // olmadığı için rol bazlı örnek bir hizmet veren kimliğiyle eşlenir;
+      // backend gelince işletmenin kendi id'si kullanılır.
+      if (_reviewTargetId(role) != null) ...[
+        const SizedBox(height: 28),
+        ReviewSection(
+          targetId: _reviewTargetId(role)!,
+          targetName: businessName,
+          showAddButton: false,
+          title: 'Müşteri yorumların',
+        ),
+      ],
     ];
+  }
+
+  /// İşletme rolünü, panelinde gösterilecek örnek yorum hedefine eşler (demo).
+  /// Pet sitter kendi yorumlarını profil ekranında gösterir, burada null döner.
+  String? _reviewTargetId(UserRole role) {
+    switch (role) {
+      case UserRole.petWalker:
+        return 'pw1';
+      case UserRole.veteriner:
+        return 'vt1';
+      case UserRole.kuafor:
+        return 'gr1';
+      default:
+        return null;
+    }
   }
 
   /// İşletme rollerine özel hizmet kutuları (role göre etiketler değişir).
