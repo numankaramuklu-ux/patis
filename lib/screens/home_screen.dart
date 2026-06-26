@@ -24,6 +24,7 @@ import 'blog_detail_screen.dart';
 import 'blog_screen.dart';
 import 'notifications_screen.dart';
 import 'pet_sitter_screen.dart';
+import 'sitter_profile_screen.dart';
 import 'profile_screen.dart';
 import 'salon_services_screen.dart';
 import 'vet_prescriptions_screen.dart';
@@ -361,9 +362,17 @@ class HomeScreen extends StatelessWidget {
           onTap: () => onSelectTab(2),
         ),
         PetService(
+          icon: Icons.storefront_outlined,
+          label: 'İşletmem',
+          color: AppColors.terracotta,
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const SitterProfileScreen()),
+          ),
+        ),
+        PetService(
           icon: Icons.groups_outlined,
           label: 'Topluluk',
-          color: AppColors.terracotta,
+          color: AppColors.gold,
           onTap: () => onSelectTab(4),
         ),
         PetService(
