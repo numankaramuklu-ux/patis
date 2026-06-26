@@ -45,6 +45,7 @@ class LostPet {
     this.hasReward = false,
     this.contactName,
     this.phone,
+    this.photoPath,
   });
 
   /// Hayvanın adı; bilinmiyorsa "İsimsiz" gibi bir metin verilir.
@@ -75,6 +76,9 @@ class LostPet {
   /// İletişim telefonu (arama/mesaj için). Yoksa iletişim aksiyonu kapalıdır.
   final String? phone;
 
+  /// Kullanıcının seçtiği fotoğrafın cihazdaki yolu (yoksa null → tür ikonu).
+  final String? photoPath;
+
   /// Cihazda saklamak (shared_preferences) için Map'e çevirir. Tür ve durum
   /// enum adı olarak yazılır.
   Map<String, dynamic> toJson() => {
@@ -87,6 +91,7 @@ class LostPet {
         'hasReward': hasReward,
         'contactName': contactName,
         'phone': phone,
+        'photoPath': photoPath,
       };
 
   /// Saklanan Map'ten [LostPet] üretir. Bilinmeyen tür/durum varsayılana düşer.
@@ -106,5 +111,6 @@ class LostPet {
         hasReward: json['hasReward'] as bool? ?? false,
         contactName: json['contactName'] as String?,
         phone: json['phone'] as String?,
+        photoPath: json['photoPath'] as String?,
       );
 }

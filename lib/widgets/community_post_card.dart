@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 import '../models/community_post.dart';
@@ -64,11 +66,36 @@ class CommunityPostCard extends StatelessWidget {
               if (post.petTag != null) _PetTag(label: post.petTag!),
             ],
           ),
-          const SizedBox(height: 12),
-          Text(
-            post.content,
-            style: theme.textTheme.bodyMedium?.copyWith(height: 1.4),
-          ),
+          // Metin varsa göster (fotoğraflı gönderilerde metin boş olabilir).
+          if (post.content.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Text(
+              post.content,
+              style: theme.textTheme.bodyMedium?.copyWith(height: 1.4),
+            ),
+          ],
+          // Fotoğraf varsa metnin altında büyük görsel olarak göster.
+          if (post.imagePath != null) ...[
+            const SizedBox(height: 12),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Image.file(
+                File(post.imagePath!),
+                fit: BoxFit.cover,
+                width: double.infinity,
+                // Bozuk/silinmiş dosyada çökmeyi önle.
+                errorBuilder: (_, _, _) => Container(
+                  height: 180,
+                  color: AppColors.text.withValues(alpha: 0.05),
+                  alignment: Alignment.center,
+                  child: Icon(
+                    Icons.broken_image_outlined,
+                    color: AppColors.text.withValues(alpha: 0.3),
+                  ),
+                ),
+              ),
+            ),
+          ],
           const SizedBox(height: 12),
           // Alt satır: beğen ve yorum.
           Row(

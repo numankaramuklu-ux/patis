@@ -13,13 +13,17 @@ enum UserRole {
   kuafor,
 
   /// Veteriner hekim / klinik.
-  veteriner;
+  veteriner,
+
+  /// Pet sitter / evde bakıcı. Konaklama (rezervasyon) talepleri alır.
+  petSitter;
 
   /// Rol kartında gösterilen kısa başlık.
   String get label => switch (this) {
         UserRole.kullanici => 'Evcil hayvan sahibi',
         UserRole.kuafor => 'Pet kuaförü',
         UserRole.veteriner => 'Veteriner',
+        UserRole.petSitter => 'Pet sitter',
       };
 
   /// Rol kartının altındaki açıklama satırı.
@@ -28,6 +32,8 @@ enum UserRole {
           'Dostumun bakımını takip etmek ve topluluğa katılmak istiyorum',
         UserRole.kuafor => 'Bakım/tıraş hizmeti veriyorum, randevu almak istiyorum',
         UserRole.veteriner => 'Klinik hizmeti veriyorum, hasta takibi yapacağım',
+        UserRole.petSitter =>
+          'Evde hayvan bakıyorum, konaklama rezervasyonları alacağım',
       };
 
   /// Rol kartındaki ikon.
@@ -35,8 +41,14 @@ enum UserRole {
         UserRole.kullanici => Icons.pets,
         UserRole.kuafor => Icons.content_cut,
         UserRole.veteriner => Icons.medical_services_outlined,
+        UserRole.petSitter => Icons.home_work_outlined,
       };
 
-  /// İşletme adı alanı sadece hizmet veren roller için anlamlı.
-  bool get isBusiness => this != UserRole.kullanici;
+  /// İşletme adı (salon/klinik) alanı yalnızca kuaför ve veteriner için anlamlı.
+  /// Pet sitter bireysel çalıştığı için işletme adı istemiyoruz.
+  bool get isBusiness =>
+      this == UserRole.kuafor || this == UserRole.veteriner;
+
+  /// Sahip dışındaki tüm roller hizmet sağlayıcıdır (panel/dashboard görür).
+  bool get isProvider => this != UserRole.kullanici;
 }

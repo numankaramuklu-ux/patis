@@ -9,18 +9,22 @@ import '../state/auth_store.dart';
 import '../state/notification_store.dart';
 import '../state/passport_store.dart';
 import '../state/salon_store.dart';
+import '../state/sitter_booking_store.dart';
 import '../state/vet_store.dart';
 import '../theme/app_colors.dart';
 import '../widgets/pet_card.dart';
 import '../widgets/salon_appointment_card.dart';
 import '../widgets/section_title.dart';
 import '../widgets/service_grid.dart';
+import '../widgets/sitter_booking_card.dart';
 import '../widgets/vet_appointment_card.dart';
+import 'pet_sitter_dashboard_screen.dart';
 import 'adoption_screen.dart';
 import 'blog_detail_screen.dart';
 import 'blog_screen.dart';
 import 'notifications_screen.dart';
 import 'pet_sitter_screen.dart';
+import 'sitter_profile_screen.dart';
 import 'profile_screen.dart';
 import 'salon_services_screen.dart';
 import 'vet_prescriptions_screen.dart';
@@ -243,21 +247,35 @@ class HomeScreen extends StatelessWidget {
     UserRole role,
   ) {
     final isVet = role == UserRole.veteriner;
+    final isSitter = role == UserRole.petSitter;
     final businessName = auth.businessName ?? auth.name ?? role.label;
-    // Özet sayılar ve günün randevuları role göre ilgili depodan canlı gelir.
+    // Özet sayılar ve günün kayıtları role göre ilgili depodan canlı gelir.
     final salon = role == UserRole.kuafor ? context.watch<SalonStore>() : null;
     final vet = isVet ? context.watch<VetStore>() : null;
-    final todayValue = salon?.todayCount ?? vet?.todayCount ?? 0;
-    final pendingValue = salon?.pendingCount ?? vet?.pendingCount ?? 0;
+    final sitter = isSitter ? context.watch<SitterBookingStore>() : null;
+    // Sitter için "bugünkü" değer aktif konaklama sayısıdır.
+    final todayValue =
+        sitter?.activeCount ?? salon?.todayCount ?? vet?.todayCount ?? 0;
+    final pendingValue =
+        sitter?.pendingCount ?? salon?.pendingCount ?? vet?.pendingCount ?? 0;
+
+    // Role göre selamlama emojisi ve alt başlık.
+    final emoji = isVet ? '🩺' : (isSitter ? '🏠' : '✂️');
+    final subtitle = isVet
+        ? 'Bugünkü hastaların hazır'
+        : (isSitter
+            ? 'Konaklama taleplerin hazır'
+            : 'Bugünkü randevuların hazır');
+    final toolsTitle = isVet
+        ? 'Klinik araçları'
+        : (isSitter ? 'Sitter araçları' : 'Salon araçları');
     return [
       Row(
         children: [
           Expanded(
             child: _GreetingHeader(
-              title: 'Merhaba, $businessName ${isVet ? '🩺' : '✂️'}',
-              subtitle: isVet
-                  ? 'Bugünkü hastaların hazır'
-                  : 'Bugünkü randevuların hazır',
+              title: 'Merhaba, $businessName $emoji',
+              subtitle: subtitle,
             ),
           ),
           const _ProfileButton(),
@@ -270,15 +288,15 @@ class HomeScreen extends StatelessWidget {
         pendingValue: '$pendingValue',
       ),
       const SizedBox(height: 28),
-      SectionTitle(isVet ? 'Klinik araçları' : 'Salon araçları'),
+      SectionTitle(toolsTitle),
       const SizedBox(height: 12),
       ServiceGrid(services: _businessServices(context, role)),
       const SizedBox(height: 28),
-      // Başlık + "Tümü" kısayolu (Randevu sekmesine geçer).
+      // Başlık + "Tümü" kısayolu (Randevu/Takvim sekmesine geçer).
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const SectionTitle('Bugünkü randevular'),
+          SectionTitle(isSitter ? 'Bugünkü konaklamalar' : 'Bugünkü randevular'),
           TextButton(
             onPressed: () => onSelectTab(2),
             child: const Text('Tümü'),
@@ -286,7 +304,7 @@ class HomeScreen extends StatelessWidget {
         ],
       ),
       const SizedBox(height: 4),
-      // Günün randevu kartları (dokununca Randevular sekmesine geçer).
+      // Günün kayıt kartları (dokununca ilgili sekmeye/panele geçer).
       if (salon != null)
         for (final appt in salon.todays) ...[
           SalonAppointmentCard(
@@ -303,11 +321,81 @@ class HomeScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
         ],
+      if (sitter != null) ...[
+        if (sitter.todayCheckIns.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Text(
+              'Bugün giriş yapan konaklama yok',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppColors.text.withValues(alpha: 0.6),
+                  ),
+            ),
+          )
+        else
+          for (final b in sitter.todayCheckIns) ...[
+            SitterBookingCard(
+              booking: b,
+              onTap: () => SitterBookingDetailSheet.show(context, b),
+            ),
+            const SizedBox(height: 12),
+          ],
+      ],
     ];
   }
 
   /// İşletme rollerine özel hizmet kutuları (role göre etiketler değişir).
   List<PetService> _businessServices(BuildContext context, UserRole role) {
+    // Pet sitter'ın araç kutuları konaklama odaklı.
+    if (role == UserRole.petSitter) {
+      return [
+        PetService(
+          icon: Icons.event_note_outlined,
+          label: 'Rezervasyonlar',
+          color: AppColors.gold,
+          onTap: () => onSelectTab(1),
+        ),
+        PetService(
+          icon: Icons.calendar_month_outlined,
+          label: 'Takvim',
+          color: AppColors.forest,
+          onTap: () => onSelectTab(2),
+        ),
+        PetService(
+          icon: Icons.storefront_outlined,
+          label: 'İşletmem',
+          color: AppColors.terracotta,
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const SitterProfileScreen()),
+          ),
+        ),
+        PetService(
+          icon: Icons.groups_outlined,
+          label: 'Topluluk',
+          color: AppColors.gold,
+          onTap: () => onSelectTab(4),
+        ),
+        PetService(
+          icon: Icons.article_outlined,
+          label: 'Blog',
+          color: AppColors.gold,
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const BlogScreen()),
+          ),
+        ),
+        PetService(
+          icon: Icons.notifications_outlined,
+          label: 'Bildirim',
+          color: AppColors.terracotta,
+          badgeCount: context.watch<NotificationStore>().unreadCount,
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => NotificationsScreen(onSelectTab: onSelectTab),
+            ),
+          ),
+        ),
+      ];
+    }
     final isVet = role == UserRole.veteriner;
     return [
       PetService(
@@ -800,6 +888,10 @@ class _BusinessSummaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isVet = role == UserRole.veteriner;
+    final isSitter = role == UserRole.petSitter;
+    final todayLabel = isVet
+        ? 'bugünkü hasta'
+        : (isSitter ? 'aktif konaklama' : 'bugünkü randevu');
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -834,7 +926,7 @@ class _BusinessSummaryCard extends StatelessWidget {
             children: [
               _Stat(
                 value: todayValue,
-                label: isVet ? 'bugünkü hasta' : 'bugünkü randevu',
+                label: todayLabel,
               ),
               Container(
                 width: 1,

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 import '../models/lost_pet.dart';
@@ -47,15 +49,20 @@ class LostPetCard extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Tür ikonu (renk durumdan gelir).
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: accent.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Icon(lostPet.species.icon, color: accent, size: 28),
+              // Fotoğraf varsa küçük resmi, yoksa tür ikonu (renk durumdan).
+              ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: lostPet.photoPath != null
+                    ? Image.file(
+                        File(lostPet.photoPath!),
+                        width: 56,
+                        height: 56,
+                        fit: BoxFit.cover,
+                        // Bozuk/silinmiş dosyada ikona düş.
+                        errorBuilder: (_, _, _) =>
+                            _SpeciesIcon(lostPet: lostPet, accent: accent),
+                      )
+                    : _SpeciesIcon(lostPet: lostPet, accent: accent),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -114,6 +121,27 @@ class LostPetCard extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Fotoğraf yokken (ya da yüklenemediğinde) gösterilen tür ikonu kutusu.
+class _SpeciesIcon extends StatelessWidget {
+  const _SpeciesIcon({required this.lostPet, required this.accent});
+
+  final LostPet lostPet;
+  final Color accent;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 56,
+      height: 56,
+      decoration: BoxDecoration(
+        color: accent.withValues(alpha: 0.2),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Icon(lostPet.species.icon, color: accent, size: 28),
     );
   }
 }

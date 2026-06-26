@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../models/adoption_listing.dart';
@@ -49,6 +52,22 @@ class _NewLostPetSheetState extends State<NewLostPetSheet> {
   AdoptionSpecies _species = AdoptionSpecies.kedi;
   bool _hasReward = false;
   DateTime? _date;
+
+  // Seçilen fotoğrafın cihazdaki yolu (yoksa tür ikonu gösterilir).
+  String? _photoPath;
+
+  /// Galeriden bir fotoğraf seçtirir ve önizleme için saklar.
+  Future<void> _pickPhoto() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1080,
+      imageQuality: 85,
+    );
+    if (picked != null) {
+      setState(() => _photoPath = picked.path);
+    }
+  }
 
   @override
   void dispose() {
@@ -110,6 +129,7 @@ class _NewLostPetSheetState extends State<NewLostPetSheet> {
             hasReward: _hasReward,
             contactName: contact.isEmpty ? null : contact,
             phone: phone,
+            photoPath: _photoPath,
           ),
         );
     Navigator.of(context).pop(); // paneli kapat
@@ -181,6 +201,53 @@ class _NewLostPetSheetState extends State<NewLostPetSheet> {
                 setState(() => _species = selection.first);
               },
             ),
+            const SizedBox(height: 16),
+            // Fotoğraf seçici (isteğe bağlı). Seçilince önizleme gösterilir.
+            if (_photoPath == null)
+              OutlinedButton.icon(
+                onPressed: _pickPhoto,
+                icon: const Icon(Icons.add_a_photo_outlined),
+                label: const Text('Fotoğraf ekle'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.terracotta,
+                  side: const BorderSide(color: AppColors.terracotta),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  minimumSize: const Size(double.infinity, 0),
+                ),
+              )
+            else
+              ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Stack(
+                  children: [
+                    AspectRatio(
+                      aspectRatio: 16 / 10,
+                      child: Image.file(
+                        File(_photoPath!),
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                      ),
+                    ),
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Material(
+                        color: Colors.black.withValues(alpha: 0.5),
+                        shape: const CircleBorder(),
+                        child: InkWell(
+                          customBorder: const CircleBorder(),
+                          onTap: () => setState(() => _photoPath = null),
+                          child: const Padding(
+                            padding: EdgeInsets.all(6),
+                            child: Icon(Icons.close,
+                                color: Colors.white, size: 20),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             const SizedBox(height: 16),
             TextField(
               controller: _nameController,

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -197,6 +199,26 @@ class _CoverBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = lostPet.status.color;
+
+    // Fotoğraf varsa onu kapak olarak göster; yoksa durum renginde gradient
+    // + büyük tür ikonu (önceki davranış).
+    if (lostPet.photoPath != null) {
+      return SizedBox(
+        height: 240,
+        width: double.infinity,
+        child: Image.file(
+          File(lostPet.photoPath!),
+          fit: BoxFit.cover,
+          // Dosya yüklenemezse gradient banner'a düş.
+          errorBuilder: (_, _, _) => _gradientBanner(accent),
+        ),
+      );
+    }
+    return _gradientBanner(accent);
+  }
+
+  /// Fotoğraf yokken gösterilen durum renginde gradient + tür ikonu.
+  Widget _gradientBanner(Color accent) {
     return Container(
       height: 170,
       decoration: BoxDecoration(
