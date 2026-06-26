@@ -6,6 +6,7 @@ import '../models/pet_service.dart';
 import '../models/user_role.dart';
 import '../state/appointment_store.dart';
 import '../state/auth_store.dart';
+import '../state/message_store.dart';
 import '../state/notification_store.dart';
 import '../state/passport_store.dart';
 import '../state/salon_store.dart';
@@ -27,7 +28,9 @@ import 'notifications_screen.dart';
 import 'pet_sitter_screen.dart';
 import 'sitter_profile_screen.dart';
 import 'profile_screen.dart';
+import 'messages_screen.dart';
 import 'salon_services_screen.dart';
+import 'walker_finder_screen.dart';
 import 'vet_prescriptions_screen.dart';
 import 'vet_vaccine_schedule_screen.dart';
 
@@ -203,6 +206,23 @@ class HomeScreen extends StatelessWidget {
         color: AppColors.forest,
         onTap: () => Navigator.of(context).push(
           MaterialPageRoute(builder: (_) => const PetSitterScreen()),
+        ),
+      ),
+      PetService(
+        icon: Icons.directions_walk,
+        label: 'Köpek Gezdirme',
+        color: AppColors.gold,
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const WalkerFinderScreen()),
+        ),
+      ),
+      PetService(
+        icon: Icons.forum_outlined,
+        label: 'Mesajlar',
+        color: AppColors.forest,
+        badgeCount: context.watch<MessageStore>().totalUnread,
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const MessagesScreen()),
         ),
       ),
       PetService(

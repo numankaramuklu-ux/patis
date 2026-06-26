@@ -17,6 +17,11 @@ class NotificationStore extends ChangeNotifier {
   }
 
   static const _kNotifications = 'notifications';
+  static const _kReminderKeys = 'reminder_keys';
+
+  /// Daha önce üretilmiş hatırlatmaların benzersiz anahtarları. Aynı aşı/randevu
+  /// için tekrar tekrar bildirim üretmemek (her açılışta) için kullanılır.
+  final Set<String> _reminderKeys = {};
 
   // Başlangıç (mock) bildirimleri — en yeni en üstte.
   final List<AppNotification> _notifications = [
@@ -67,6 +72,24 @@ class NotificationStore extends ChangeNotifier {
     _persist();
   }
 
+  /// Daha önce bu anahtarla bir hatırlatma üretildi mi?
+  bool hasReminder(String key) => _reminderKeys.contains(key);
+
+  /// Verilen anahtarla daha önce hatırlatma üretilmediyse yeni bir hatırlatma
+  /// bildirimi ekler. Anahtar (örn. "vacc:Kuduz:10 Mart 2027") kalıcı tutulur,
+  /// böylece aynı aşı/randevu için tekrar bildirim üretilmez.
+  void addReminder({
+    required String key,
+    required AppNotification notification,
+  }) {
+    if (_reminderKeys.contains(key)) return;
+    _reminderKeys.add(key);
+    _notifications.insert(0, notification);
+    notifyListeners();
+    _persist();
+    _persistReminderKeys();
+  }
+
   /// Tek bir bildirimi okundu olarak işaretler.
   void markAsRead(AppNotification notification) {
     if (notification.read) return;
@@ -93,8 +116,18 @@ class NotificationStore extends ChangeNotifier {
   /// Kayıtlı bildirimleri diskten yükler (varsa varsayılanların yerini alır).
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
+    final keysRaw = prefs.getString(_kReminderKeys);
+    if (keysRaw != null) {
+      _reminderKeys
+        ..clear()
+        ..addAll((jsonDecode(keysRaw) as List).cast<String>());
+    }
+
     final raw = prefs.getString(_kNotifications);
-    if (raw == null) return;
+    if (raw == null) {
+      if (keysRaw != null) notifyListeners();
+      return;
+    }
     final decoded = (jsonDecode(raw) as List)
         .map((e) => AppNotification.fromJson(e as Map<String, dynamic>))
         .toList();
@@ -102,6 +135,11 @@ class NotificationStore extends ChangeNotifier {
       ..clear()
       ..addAll(decoded);
     notifyListeners();
+  }
+
+  Future<void> _persistReminderKeys() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_kReminderKeys, jsonEncode(_reminderKeys.toList()));
   }
 
   /// Bildirim listesini (okundu durumuyla) JSON olarak diske yazar.

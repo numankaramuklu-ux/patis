@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../models/user_role.dart';
+import '../services/reminder_service.dart';
+import '../state/appointment_store.dart';
 import '../state/auth_store.dart';
+import '../state/notification_store.dart';
+import '../state/passport_store.dart';
 import 'appointment_screen.dart';
 import 'community_screen.dart';
 import 'home_screen.dart';
@@ -36,6 +40,23 @@ class MainScaffold extends StatefulWidget {
 class _MainScaffoldState extends State<MainScaffold> {
   // Şu an açık olan sekmenin sırası (0 = Ana Sayfa).
   int _currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    // Oturum açıldığında yaklaşan aşı/randevular için bir kez hatırlatma üret.
+    // Depoların `shared_preferences`'tan yüklenmesini beklemek için kısa bir
+    // gecikme veriyoruz (aksi halde _load listeyi sıfırlayıp eklediğimiz
+    // hatırlatmayı silebilir). Tekrarlar kalıcı anahtarlarla önlenir.
+    Future.delayed(const Duration(milliseconds: 600), () {
+      if (!mounted) return;
+      ReminderService.sync(
+        passport: context.read<PassportStore>(),
+        appointments: context.read<AppointmentStore>(),
+        notifications: context.read<NotificationStore>(),
+      );
+    });
+  }
 
   // Sekmeyi programatik olarak değiştirir. Ana Sayfa'daki hizmet kutularına
   // verip, kutuya basınca ilgili sekmeye geçmesini sağlıyoruz.
