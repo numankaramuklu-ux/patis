@@ -33,6 +33,12 @@ class NotificationStore extends ChangeNotifier {
       timeAgo: '3 saat önce',
     ),
     AppNotification(
+      kind: NotificationKind.booking,
+      title: 'Yeni rezervasyon talebi',
+      body: 'Mert K., Karamel için 26–29 Haziran konaklama talebinde bulundu.',
+      timeAgo: '2 saat önce',
+    ),
+    AppNotification(
       kind: NotificationKind.lostPet,
       title: 'Yakınında kayıp ilanı',
       body: 'Çankaya\'da kaybolan "Boncuk" için yardım aranıyor.',
@@ -52,6 +58,14 @@ class NotificationStore extends ChangeNotifier {
 
   /// Okunmamış bildirim sayısı (Ana Sayfa'daki rozet bunu kullanır).
   int get unreadCount => _notifications.where((n) => !n.read).length;
+
+  /// Akışın en üstüne yeni bir bildirim ekler (okunmamış). Örn. yeni bir
+  /// rezervasyon talebi gelince çağrılır; rozet ve liste otomatik güncellenir.
+  void add(AppNotification notification) {
+    _notifications.insert(0, notification);
+    notifyListeners();
+    _persist();
+  }
 
   /// Tek bir bildirimi okundu olarak işaretler.
   void markAsRead(AppNotification notification) {

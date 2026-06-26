@@ -28,6 +28,8 @@ class NotificationsScreen extends StatelessWidget {
         return 3; // Kayıp
       case NotificationKind.community:
         return 4; // Topluluk
+      case NotificationKind.booking:
+        return 1; // Rezervasyon paneli (pet sitter 1. sekmesi)
       case NotificationKind.system:
         return null;
     }

@@ -15,6 +15,7 @@ class CommunityPost {
     required this.content,
     required this.avatarColor,
     this.petTag,
+    this.imagePath,
     this.likeCount = 0,
     List<Comment>? comments,
     this.liked = false,
@@ -36,6 +37,10 @@ class CommunityPost {
   /// İsteğe bağlı evcil hayvan etiketi (örn. "Pamuk"). Verilirse kartta
   /// küçük bir rozet olarak gösterilir.
   final String? petTag;
+
+  /// İsteğe bağlı fotoğrafın cihazdaki yolu. Verilirse kartta metnin altında
+  /// büyük görsel olarak gösterilir.
+  final String? imagePath;
 
   /// Beğeni sayısı (değişebilir).
   int likeCount;
@@ -61,6 +66,7 @@ class CommunityPost {
         'content': content,
         'avatarColor': avatarColor.toARGB32(),
         'petTag': petTag,
+        'imagePath': imagePath,
         'likeCount': likeCount,
         'liked': liked,
         'comments': comments.map((c) => c.toJson()).toList(),
@@ -76,6 +82,7 @@ class CommunityPost {
               communityAvatarColors[0].toARGB32(),
         ),
         petTag: json['petTag'] as String?,
+        imagePath: json['imagePath'] as String?,
         likeCount: (json['likeCount'] as num?)?.toInt() ?? 0,
         liked: json['liked'] as bool? ?? false,
         comments: (json['comments'] as List? ?? const [])

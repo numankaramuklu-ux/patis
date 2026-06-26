@@ -4,7 +4,7 @@ import '../theme/app_colors.dart';
 
 /// Bir bildirimin türü. Türüne göre ikon ve renk seçilir; ileride dokununca
 /// ilgili ekrana yönlendirmek için de kullanılabilir.
-enum NotificationKind { appointment, community, lostPet, system }
+enum NotificationKind { appointment, community, lostPet, booking, system }
 
 /// Uygulama içi tek bir bildirim (yol haritası: Bildirimler).
 ///
@@ -65,6 +65,8 @@ class AppNotification {
         return Icons.groups_outlined;
       case NotificationKind.lostPet:
         return Icons.location_on_outlined;
+      case NotificationKind.booking:
+        return Icons.event_available_outlined;
       case NotificationKind.system:
         return Icons.pets;
     }
@@ -79,6 +81,8 @@ class AppNotification {
         return AppColors.forest;
       case NotificationKind.lostPet:
         return AppColors.terracotta;
+      case NotificationKind.booking:
+        return AppColors.gold;
       case NotificationKind.system:
         return AppColors.forest;
     }

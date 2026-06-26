@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../models/community_post.dart';
@@ -36,11 +39,27 @@ class _NewPostSheetState extends State<NewPostSheet> {
   // Etiketlenecek dost (kendi hayvanlarından). null = etiketsiz.
   String? _petTag;
 
+  // Seçilen fotoğrafın cihazdaki yolu. null = fotoğrafsız gönderi.
+  String? _imagePath;
+
   @override
   void initState() {
     super.initState();
     // Varsayılan olarak aktif hayvanı etiketle.
     _petTag = context.read<PassportStore>().pet.name;
+  }
+
+  /// Galeriden bir fotoğraf seçtirir ve önizleme için saklar.
+  Future<void> _pickPhoto() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1080,
+      imageQuality: 85,
+    );
+    if (picked != null) {
+      setState(() => _imagePath = picked.path);
+    }
   }
 
   @override
@@ -53,9 +72,10 @@ class _NewPostSheetState extends State<NewPostSheet> {
   void _save() {
     final content = _contentController.text.trim();
 
-    if (content.isEmpty) {
+    // Fotoğraf varsa metin zorunlu değil; ikisi de boşsa uyar.
+    if (content.isEmpty && _imagePath == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Lütfen bir şeyler yaz')),
+        const SnackBar(content: Text('Bir şeyler yaz ya da fotoğraf ekle')),
       );
       return;
     }
@@ -72,6 +92,7 @@ class _NewPostSheetState extends State<NewPostSheet> {
         content: content,
         avatarColor: color,
         petTag: _petTag,
+        imagePath: _imagePath,
       ),
     );
     Navigator.of(context).pop();
@@ -111,6 +132,52 @@ class _NewPostSheetState extends State<NewPostSheet> {
               alignLabelWithHint: true,
             ),
           ),
+          const SizedBox(height: 16),
+          // Fotoğraf seçici (isteğe bağlı). Seçilince önizleme gösterilir.
+          if (_imagePath == null)
+            OutlinedButton.icon(
+              onPressed: _pickPhoto,
+              icon: const Icon(Icons.add_a_photo_outlined),
+              label: const Text('Fotoğraf ekle'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.forest,
+                side: const BorderSide(color: AppColors.forest),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                minimumSize: const Size(double.infinity, 0),
+              ),
+            )
+          else
+            ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Stack(
+                children: [
+                  AspectRatio(
+                    aspectRatio: 16 / 10,
+                    child: Image.file(
+                      File(_imagePath!),
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                    ),
+                  ),
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: Material(
+                      color: Colors.black.withValues(alpha: 0.5),
+                      shape: const CircleBorder(),
+                      child: InkWell(
+                        customBorder: const CircleBorder(),
+                        onTap: () => setState(() => _imagePath = null),
+                        child: const Padding(
+                          padding: EdgeInsets.all(6),
+                          child: Icon(Icons.close, color: Colors.white, size: 20),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           const SizedBox(height: 16),
           // Hangi dostu etiketleyelim? (kendi hayvanlarından)
           DropdownButtonFormField<String?>(
