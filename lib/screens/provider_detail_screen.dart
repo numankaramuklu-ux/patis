@@ -7,6 +7,7 @@ import '../models/app_notification.dart';
 import '../models/appointment.dart';
 import '../models/service_provider.dart';
 import '../state/appointment_store.dart';
+import '../state/message_store.dart';
 import '../state/notification_store.dart';
 import '../state/passport_store.dart';
 import '../state/review_store.dart';
@@ -14,6 +15,7 @@ import '../state/service_provider_store.dart';
 import '../theme/app_colors.dart';
 import '../utils/tr_date.dart';
 import '../widgets/review_section.dart';
+import 'chat_screen.dart';
 
 /// Tek bir veteriner/kuaförün yorumlu detay ekranı.
 ///
@@ -337,6 +339,21 @@ class _ContactSheet extends StatelessWidget {
     }
   }
 
+  /// Uygulama içi sohbeti açar (gerekirse oluşturur). Karşı tarafın rolü
+  /// işletme türünden gelir (Veteriner / Kuaför).
+  void _openChat(BuildContext context) {
+    final store = context.read<MessageStore>();
+    final id = store.openThread(
+      peerName: provider.name,
+      peerRole: provider.kind.label,
+    );
+    final thread = store.threads.firstWhere((t) => t.id == id);
+    Navigator.of(context).pop();
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => ChatScreen(thread: thread)),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -415,8 +432,7 @@ class _ContactSheet extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () =>
-                      _launch(context, Uri(scheme: 'sms', path: phone)),
+                  onPressed: () => _openChat(context),
                   icon: const Icon(Icons.message_outlined),
                   label: const Text('Mesaj'),
                   style: OutlinedButton.styleFrom(
