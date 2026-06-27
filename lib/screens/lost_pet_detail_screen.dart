@@ -2,10 +2,13 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../models/lost_pet.dart';
+import '../state/message_store.dart';
 import '../theme/app_colors.dart';
+import 'chat_screen.dart';
 
 /// Tek bir kayıp/bulundu ilanının tüm detayını gösteren ekran.
 ///
@@ -368,6 +371,21 @@ class _ContactSheet extends StatelessWidget {
     }
   }
 
+  /// İlan sahibiyle uygulama içi sohbeti açar; gerekirse oluşturur. Karşı taraf
+  /// adı iletişim adı (yoksa hayvan adı) olur ki her ilan benzersiz thread alsın.
+  void _openChat(BuildContext context) {
+    final store = context.read<MessageStore>();
+    final id = store.openThread(
+      peerName: lostPet.contactName ?? lostPet.name,
+      peerRole: '${lostPet.status.label} · ${lostPet.name}',
+    );
+    final thread = store.threads.firstWhere((t) => t.id == id);
+    Navigator.of(context).pop();
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => ChatScreen(thread: thread)),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -450,8 +468,7 @@ class _ContactSheet extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () =>
-                      _launch(context, Uri(scheme: 'sms', path: phone)),
+                  onPressed: () => _openChat(context),
                   icon: const Icon(Icons.message_outlined),
                   label: const Text('Mesaj'),
                   style: OutlinedButton.styleFrom(

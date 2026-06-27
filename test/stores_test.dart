@@ -107,18 +107,29 @@ void main() {
   group('MessageStore', () {
     test('seed sohbette okunmamış mesajlar var', () {
       final store = MessageStore();
-      expect(store.unreadOf('t_elifk'), greaterThan(0));
+      expect(store.unreadOf('t_elifk_petwalker'), greaterThan(0));
       expect(store.totalUnread, greaterThan(0));
     });
 
     test('openThread var olanı döndürür, yenisini oluşturur', () {
       final store = MessageStore();
-      final existing = store.openThread(peerName: 'Elif K.', peerRole: 'x');
-      expect(existing, 't_elifk');
+      // Aynı ad + rol → var olan seed sohbeti döner.
+      final existing =
+          store.openThread(peerName: 'Elif K.', peerRole: 'Pet walker');
+      expect(existing, 't_elifk_petwalker');
 
       final created =
           store.openThread(peerName: 'Yeni Kişi', peerRole: 'Pet walker');
       expect(store.threads.any((t) => t.id == created), isTrue);
+    });
+
+    test('aynı ad farklı rol → ayrı sohbetler', () {
+      final store = MessageStore();
+      final a =
+          store.openThread(peerName: 'Ayşe Yılmaz', peerRole: 'Müşteri · Pamuk');
+      final b =
+          store.openThread(peerName: 'Ayşe Yılmaz', peerRole: 'Kayıp · Boncuk');
+      expect(a, isNot(b));
     });
 
     test('mesaj gönderilir ve okundu işaretlenir', () {
@@ -128,8 +139,8 @@ void main() {
       expect(store.messagesOf(id).last.body, 'merhaba');
       expect(store.messagesOf(id).last.fromMe, isTrue);
 
-      store.markThreadRead('t_elifk');
-      expect(store.unreadOf('t_elifk'), 0);
+      store.markThreadRead('t_elifk_petwalker');
+      expect(store.unreadOf('t_elifk_petwalker'), 0);
     });
 
     test('boş mesaj gönderilmez', () {

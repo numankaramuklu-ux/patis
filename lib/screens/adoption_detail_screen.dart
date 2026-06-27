@@ -5,7 +5,9 @@ import 'package:provider/provider.dart';
 
 import '../models/adoption_listing.dart';
 import '../state/adoption_store.dart';
+import '../state/message_store.dart';
 import '../theme/app_colors.dart';
+import 'chat_screen.dart';
 
 /// Tek bir sahiplendirme ilanının detay ekranı.
 ///
@@ -19,6 +21,20 @@ class AdoptionDetailScreen extends StatelessWidget {
 
   void _snack(BuildContext context, String msg) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+  }
+
+  /// İlan sahibiyle uygulama içi sohbeti açar; gerekirse oluşturur. Karşı taraf
+  /// adı ilandaki hayvanın adıdır (her ilan için benzersiz thread oluşsun diye).
+  void _openChat(BuildContext context) {
+    final store = context.read<MessageStore>();
+    final id = store.openThread(
+      peerName: listing.name,
+      peerRole: 'Sahiplendirme · ${listing.city}',
+    );
+    final thread = store.threads.firstWhere((t) => t.id == id);
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => ChatScreen(thread: thread)),
+    );
   }
 
   @override
@@ -129,10 +145,7 @@ class AdoptionDetailScreen extends StatelessWidget {
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: () => _snack(
-                      context,
-                      '${listing.name} hakkında mesaj gönderiliyor…',
-                    ),
+                    onPressed: () => _openChat(context),
                     icon: const Icon(Icons.chat_bubble_outline),
                     label: const Text('Mesaj'),
                     style: OutlinedButton.styleFrom(
