@@ -3,10 +3,12 @@ import 'package:provider/provider.dart';
 
 import '../models/vet_patient.dart';
 import '../models/vet_prescription.dart';
+import '../state/message_store.dart';
 import '../state/vet_store.dart';
 import '../theme/app_colors.dart';
 import '../widgets/new_prescription_sheet.dart';
 import '../widgets/new_vet_appointment_sheet.dart';
+import 'chat_screen.dart';
 
 /// Tek bir hastanın detay ekranı.
 ///
@@ -19,6 +21,19 @@ class VetPatientDetailScreen extends StatelessWidget {
 
   void _snack(BuildContext context, String msg) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+  }
+
+  /// Hasta sahibiyle uygulama içi sohbeti açar; gerekirse oluşturur.
+  void _openChat(BuildContext context) {
+    final store = context.read<MessageStore>();
+    final id = store.openThread(
+      peerName: patient.ownerName,
+      peerRole: 'Hasta sahibi · ${patient.petName}',
+    );
+    final thread = store.threads.firstWhere((t) => t.id == id);
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => ChatScreen(thread: thread)),
+    );
   }
 
   @override
@@ -102,7 +117,7 @@ class VetPatientDetailScreen extends StatelessWidget {
               ownerName: patient.ownerName,
               phone: patient.phone,
               onCall: () => _snack(context, '${patient.ownerName} aranıyor…'),
-              onMessage: () => _snack(context, 'Mesaj gönderiliyor…'),
+              onMessage: () => _openChat(context),
             ),
 
             // ---- Alerjiler / kronik durumlar ----
