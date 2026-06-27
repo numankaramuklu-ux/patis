@@ -9,12 +9,14 @@ import '../models/app_notification.dart';
 import '../models/pet_sitter.dart';
 import '../models/sitter_booking.dart';
 import '../state/auth_store.dart';
+import '../state/message_store.dart';
 import '../state/notification_store.dart';
 import '../state/passport_store.dart';
 import '../state/pet_sitter_store.dart';
 import '../state/sitter_booking_store.dart';
 import '../theme/app_colors.dart';
 import '../utils/tr_date.dart';
+import 'chat_screen.dart';
 
 /// Tek bir pet sitter'ın detay ekranı.
 ///
@@ -444,6 +446,20 @@ class _ContactSheet extends StatelessWidget {
     }
   }
 
+  /// Uygulama içi sohbeti açar (gerekirse oluşturur).
+  void _openChat(BuildContext context) {
+    final store = context.read<MessageStore>();
+    final id = store.openThread(
+      peerName: sitter.name,
+      peerRole: 'Pet sitter',
+    );
+    final thread = store.threads.firstWhere((t) => t.id == id);
+    Navigator.of(context).pop();
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => ChatScreen(thread: thread)),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -521,8 +537,7 @@ class _ContactSheet extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () =>
-                      _launch(context, Uri(scheme: 'sms', path: phone)),
+                  onPressed: () => _openChat(context),
                   icon: const Icon(Icons.message_outlined),
                   label: const Text('Mesaj'),
                   style: OutlinedButton.styleFrom(
