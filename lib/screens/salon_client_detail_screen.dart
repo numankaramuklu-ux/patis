@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../models/salon_client.dart';
+import '../state/message_store.dart';
 import '../theme/app_colors.dart';
+import 'chat_screen.dart';
 
 /// Tek bir salon müşterisinin detay ekranı.
 ///
@@ -14,6 +17,19 @@ class SalonClientDetailScreen extends StatelessWidget {
 
   void _snack(BuildContext context, String msg) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+  }
+
+  /// Müşteriyle (hayvan sahibi) uygulama içi sohbeti açar; gerekirse oluşturur.
+  void _openChat(BuildContext context) {
+    final store = context.read<MessageStore>();
+    final id = store.openThread(
+      peerName: client.ownerName,
+      peerRole: 'Müşteri · ${client.petName}',
+    );
+    final thread = store.threads.firstWhere((t) => t.id == id);
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => ChatScreen(thread: thread)),
+    );
   }
 
   @override
@@ -110,7 +126,7 @@ class SalonClientDetailScreen extends StatelessWidget {
               ownerName: client.ownerName,
               phone: client.phone,
               onCall: () => _snack(context, '${client.ownerName} aranıyor…'),
-              onMessage: () => _snack(context, 'Mesaj gönderiliyor…'),
+              onMessage: () => _openChat(context),
             ),
             const SizedBox(height: 24),
 
