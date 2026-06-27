@@ -23,7 +23,11 @@ class MessageStore extends ChangeNotifier {
   final List<ChatMessage> _messages = List.of(_seedMessages());
 
   static List<ChatThread> _seedThreads() => const [
-        ChatThread(id: 't_elifk', peerName: 'Elif K.', peerRole: 'Pet walker'),
+        ChatThread(
+          id: 't_elifk_petwalker',
+          peerName: 'Elif K.',
+          peerRole: 'Pet walker',
+        ),
       ];
 
   static List<ChatMessage> _seedMessages() {
@@ -31,14 +35,14 @@ class MessageStore extends ChangeNotifier {
     return [
       ChatMessage(
         id: 'm1',
-        threadId: 't_elifk',
+        threadId: 't_elifk_petwalker',
         body: 'Merhaba! Pamuk için yürüyüş talebinizi aldım 🐾',
         fromMe: false,
         sentAt: now.subtract(const Duration(minutes: 40)),
       ),
       ChatMessage(
         id: 'm2',
-        threadId: 't_elifk',
+        threadId: 't_elifk_petwalker',
         body: 'Saat 09:00 sizin için uygun mu?',
         fromMe: false,
         sentAt: now.subtract(const Duration(minutes: 39)),
@@ -87,10 +91,18 @@ class MessageStore extends ChangeNotifier {
   int get totalUnread =>
       _messages.where((m) => !m.fromMe && !m.read).length;
 
+  /// Bir metni sohbet kimliğinde kullanılabilir sade bir parçaya indirger
+  /// (küçük harf, yalnızca a-z0-9). Türkçe karakterler elenir.
+  static String _slug(String s) =>
+      s.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+
   /// Karşı tarafa göre var olan sohbeti döndürür; yoksa oluşturur. Sohbet
   /// kimliğini verir, böylece çağıran [ChatScreen]'i açabilir.
+  ///
+  /// Kimlik hem ada hem role bağlıdır; böylece aynı isimli ama farklı bağlamdaki
+  /// (örn. "Müşteri · Pamuk" ile "Kayıp · Boncuk") kişiler ayrı sohbetlere düşer.
   String openThread({required String peerName, required String peerRole}) {
-    final id = 't_${peerName.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '')}';
+    final id = 't_${_slug(peerName)}_${_slug(peerRole)}';
     final exists = _threads.any((t) => t.id == id);
     if (!exists) {
       _threads.add(

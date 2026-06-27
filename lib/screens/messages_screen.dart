@@ -14,6 +14,43 @@ import 'chat_screen.dart';
 class MessagesScreen extends StatelessWidget {
   const MessagesScreen({super.key});
 
+  /// Sıfırdan sohbet başlatır: bir ad sorar, [MessageStore]'da sohbeti açar
+  /// (gerekirse oluşturur) ve [ChatScreen]'e yönlendirir.
+  Future<void> _startNewChat(BuildContext context) async {
+    final controller = TextEditingController();
+    final name = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Yeni sohbet'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          textCapitalization: TextCapitalization.words,
+          decoration: const InputDecoration(hintText: 'Kişi veya işletme adı'),
+          onSubmitted: (v) => Navigator.of(ctx).pop(v),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Vazgeç'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(controller.text),
+            child: const Text('Başlat'),
+          ),
+        ],
+      ),
+    );
+    if (name == null || name.trim().isEmpty || !context.mounted) return;
+    final store = context.read<MessageStore>();
+    final id = store.openThread(peerName: name.trim(), peerRole: 'Kişi');
+    final thread = store.threads.firstWhere((t) => t.id == id);
+    if (!context.mounted) return;
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => ChatScreen(thread: thread)),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -22,6 +59,13 @@ class MessagesScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Mesajlar')),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _startNewChat(context),
+        backgroundColor: AppColors.forest,
+        foregroundColor: AppColors.cream,
+        icon: const Icon(Icons.edit_outlined),
+        label: const Text('Yeni sohbet'),
+      ),
       body: SafeArea(
         top: false,
         child: threads.isEmpty
