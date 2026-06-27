@@ -102,22 +102,53 @@ class MessageStore extends ChangeNotifier {
     return id;
   }
 
-  /// Bu kullanıcı adına bir mesaj gönderir.
+  /// Karşı tarafın (mock) otomatik yanıtları — backend gelene kadar sohbetin
+  /// çift yönlü hissettirmesi için.
+  static const _autoReplies = <String>[
+    'Teşekkürler, en kısa sürede dönüş yapacağım 🐾',
+    'Anladım, not aldım. Müsait olunca detayları konuşalım.',
+    'Harika! Sizin için uygun bir zaman ayarlayabilirim.',
+    'Mesajınız için teşekkürler, hemen ilgileniyorum.',
+  ];
+
+  /// Bu kullanıcı adına bir mesaj gönderir. Demo amaçlı, kısa bir gecikmeyle
+  /// karşı taraftan otomatik bir yanıt gelir (backend gelince kaldırılır).
   void send(String threadId, String body) {
     final text = body.trim();
     if (text.isEmpty) return;
+    final now = DateTime.now();
     _messages.add(
       ChatMessage(
-        id: 'm${DateTime.now().millisecondsSinceEpoch}',
+        id: 'm${now.millisecondsSinceEpoch}',
         threadId: threadId,
         body: text,
         fromMe: true,
-        sentAt: DateTime.now(),
+        sentAt: now,
         read: true,
       ),
     );
     notifyListeners();
     _persistMessages();
+    _scheduleAutoReply(threadId);
+  }
+
+  /// Kısa bir gecikmeyle karşı taraftan otomatik (okunmamış) bir yanıt ekler.
+  void _scheduleAutoReply(String threadId) {
+    final reply = _autoReplies[
+        DateTime.now().millisecondsSinceEpoch % _autoReplies.length];
+    Future.delayed(const Duration(milliseconds: 1400), () {
+      _messages.add(
+        ChatMessage(
+          id: 'mr${DateTime.now().millisecondsSinceEpoch}',
+          threadId: threadId,
+          body: reply,
+          fromMe: false,
+          sentAt: DateTime.now(),
+        ),
+      );
+      notifyListeners();
+      _persistMessages();
+    });
   }
 
   /// Bir sohbetteki karşıdan gelen tüm mesajları okundu işaretler.

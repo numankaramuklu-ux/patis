@@ -241,15 +241,7 @@ class HomeScreen extends StatelessWidget {
           MaterialPageRoute(builder: (_) => const WalkerFinderScreen()),
         ),
       ),
-      PetService(
-        icon: Icons.forum_outlined,
-        label: 'Mesajlar',
-        color: AppColors.forest,
-        badgeCount: context.watch<MessageStore>().totalUnread,
-        onTap: () => Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const MessagesScreen()),
-        ),
-      ),
+      _messagesService(context),
       PetService(
         icon: Icons.location_on_outlined,
         label: 'Kayıp',
@@ -470,6 +462,7 @@ class HomeScreen extends StatelessWidget {
             MaterialPageRoute(builder: (_) => const BlogScreen()),
           ),
         ),
+        _messagesService(context),
         PetService(
           icon: Icons.notifications_outlined,
           label: 'Bildirim',
@@ -533,6 +526,7 @@ class HomeScreen extends StatelessWidget {
           MaterialPageRoute(builder: (_) => const BlogScreen()),
         ),
       ),
+      _messagesService(context),
       PetService(
         icon: Icons.notifications_outlined,
         label: 'Bildirim',
@@ -546,6 +540,18 @@ class HomeScreen extends StatelessWidget {
       ),
     ];
   }
+
+  /// İşletme panelindeki "Mesajlar" kutusu (okunmamış rozetli). Tüm roller
+  /// aynı gelen kutusunu paylaşır.
+  PetService _messagesService(BuildContext context) => PetService(
+        icon: Icons.forum_outlined,
+        label: 'Mesajlar',
+        color: AppColors.forest,
+        badgeCount: context.watch<MessageStore>().totalUnread,
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const MessagesScreen()),
+        ),
+      );
 
   /// Kuaförün hizmet & fiyat listesi ekranını açar.
   void _openSalonServices(BuildContext context) {
